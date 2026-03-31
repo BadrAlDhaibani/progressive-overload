@@ -58,7 +58,7 @@ export function initDatabase(): void {
 
   const result = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
   if (result && result.user_version === 0) {
-    seedDatabase();
+    seedDatabase(db);
     db.execSync('PRAGMA user_version = 1');
   }
 }

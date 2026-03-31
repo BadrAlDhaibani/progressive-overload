@@ -1,4 +1,4 @@
-import { db } from './database';
+import type { SQLiteDatabase } from 'expo-sqlite';
 
 type ExerciseTuple = [name: string, muscleGroup: string, equipment: string];
 
@@ -152,8 +152,8 @@ const templates: TemplateData[] = [
   },
 ];
 
-function getExerciseId(name: string): number {
-  const row = db.getFirstSync<{ id: number }>(
+function getExerciseId(database: SQLiteDatabase, name: string): number {
+  const row = database.getFirstSync<{ id: number }>(
     'SELECT id FROM exercises WHERE name = ?',
     name
   );
@@ -163,9 +163,9 @@ function getExerciseId(name: string): number {
   return row.id;
 }
 
-export function seedDatabase(): void {
+export function seedDatabase(database: SQLiteDatabase): void {
   for (const [name, muscleGroup, equipment] of exercises) {
-    db.runSync(
+    database.runSync(
       'INSERT INTO exercises (name, muscle_group, equipment) VALUES (?, ?, ?)',
       name,
       muscleGroup,
@@ -174,7 +174,7 @@ export function seedDatabase(): void {
   }
 
   for (const template of templates) {
-    const result = db.runSync(
+    const result = database.runSync(
       'INSERT INTO templates (name) VALUES (?)',
       template.name
     );
@@ -182,8 +182,8 @@ export function seedDatabase(): void {
 
     for (let i = 0; i < template.exercises.length; i++) {
       const ex = template.exercises[i];
-      const exerciseId = getExerciseId(ex.name);
-      db.runSync(
+      const exerciseId = getExerciseId(database, ex.name);
+      database.runSync(
         'INSERT INTO template_exercises (template_id, exercise_id, sort_order, default_sets, default_reps) VALUES (?, ?, ?, ?, ?)',
         templateId,
         exerciseId,
