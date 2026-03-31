@@ -2,15 +2,25 @@ import { useMemo } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { getAllExercises } from '@/db/exercises';
+import { getAllTemplates } from '@/db/templates';
 
 export default function HomeContent() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  // DEBUG: remove after verification
+  const exerciseCount = useMemo(() => getAllExercises().length, []);
+  const templateCount = useMemo(() => getAllTemplates().length, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Proverload</Text>
       <Text style={styles.subtitle}>Track your progress. Beat your last set.</Text>
+      {/* DEBUG: remove after verification */}
+      <Text style={styles.debugText}>
+        {exerciseCount} exercises, {templateCount} templates
+      </Text>
       <Pressable
         style={({ pressed }) => [
           styles.startButton,
@@ -41,6 +51,12 @@ const createStyles = (colors: Colors) =>
     subtitle: {
       fontSize: 15,
       color: colors.textSecondary,
+      marginBottom: 8,
+    },
+    // DEBUG: remove after verification
+    debugText: {
+      fontSize: 13,
+      color: colors.textMuted,
       marginBottom: 32,
     },
     startButton: {

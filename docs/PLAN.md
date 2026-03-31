@@ -12,8 +12,8 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 | Batch | Status | Description |
 |-------|--------|-------------|
-| 1 | Not started | Design Tokens + Navigation Shell |
-| 2 | Not started | Database Layer + Seed Data |
+| 1 | Done | Design Tokens + Navigation Shell |
+| 2 | Done | Database Layer + Seed Data |
 | 3 | Not started | Exercise Library Screen |
 | 4 | Not started | Zustand Store + Start Workout Flow |
 | 5 | Not started | Add Exercise to Workout |

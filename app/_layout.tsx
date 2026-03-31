@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { initDatabase } from '@/db/database';
 
 export {
   ErrorBoundary,
@@ -14,6 +15,7 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+initDatabase();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
