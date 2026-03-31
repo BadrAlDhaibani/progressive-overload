@@ -1,59 +1,108 @@
-import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+import { useRef, useState, useCallback, useMemo } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import PagerView from 'react-native-pager-view';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useColors, type Colors } from '@/constants/colors';
+import HomeContent from '@/components/screens/HomeContent';
+import HistoryContent from '@/components/screens/HistoryContent';
+import ExercisesContent from '@/components/screens/ExercisesContent';
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
-}
+type TabConfig = {
+  title: string;
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  Component: React.ComponentType;
+};
+
+const tabs: TabConfig[] = [
+  { title: 'Home', icon: 'home-outline', Component: HomeContent },
+  { title: 'History', icon: 'time-outline', Component: HistoryContent },
+  { title: 'Exercises', icon: 'barbell-outline', Component: ExercisesContent },
+];
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const pagerRef = useRef<PagerView>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const onPageScroll = useCallback((e: { nativeEvent: { position: number; offset: number } }) => {
+    const { position, offset } = e.nativeEvent;
+    const newIndex = offset > 0.5 ? position + 1 : position;
+    setActiveIndex(newIndex);
+  }, []);
+
+  const onTabPress = useCallback((index: number) => {
+    pagerRef.current?.setPage(index);
+    setActiveIndex(index);
+  }, []);
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="two"
-        options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-        }}
-      />
-    </Tabs>
+    <View style={styles.container}>
+      <View style={{ paddingTop: insets.top, backgroundColor: colors.bg }} />
+
+      <PagerView
+        ref={pagerRef}
+        style={styles.pager}
+        initialPage={0}
+        onPageScroll={onPageScroll}
+      >
+        {tabs.map((tab, index) => (
+          <View key={index} style={styles.page}>
+            <tab.Component />
+          </View>
+        ))}
+      </PagerView>
+
+      <View style={[styles.tabBar, { paddingBottom: insets.bottom }]}>
+        {tabs.map((tab, index) => {
+          const isActive = index === activeIndex;
+          const tint = isActive ? colors.primary : colors.textMuted;
+          return (
+            <Pressable
+              key={index}
+              style={styles.tabItem}
+              onPress={() => onTabPress(index)}
+            >
+              <Ionicons name={tab.icon} size={24} color={tint} />
+              <Text style={[styles.tabLabel, { color: tint }]}>{tab.title}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
   );
 }
+
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    pager: {
+      flex: 1,
+    },
+    page: {
+      flex: 1,
+    },
+    tabBar: {
+      flexDirection: 'row',
+      backgroundColor: colors.bg,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      paddingTop: 8,
+    },
+    tabItem: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 4,
+    },
+    tabLabel: {
+      fontSize: 10,
+      marginTop: 4,
+    },
+  });

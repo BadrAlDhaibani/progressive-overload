@@ -1,4 +1,4 @@
 // Screen content rendered by PagerView in _layout.tsx
-export default function HomeScreen() {
+export default function ExercisesScreen() {
   return null;
 }
