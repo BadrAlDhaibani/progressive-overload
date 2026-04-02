@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useWorkoutStore, type WorkoutSet } from '@/store/useWorkoutStore';
+import SetRow from './SetRow';
 
 interface ExerciseCardProps {
   exerciseId: number;
@@ -16,6 +17,8 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
 
   const exercise = useWorkoutStore((s) => s.exercises[exerciseId]);
   const addSet = useWorkoutStore((s) => s.addSet);
+  const updateSet = useWorkoutStore((s) => s.updateSet);
+  const completeSet = useWorkoutStore((s) => s.completeSet);
 
   const setLocalIds = useWorkoutStore(
     useShallow((s) => s.setIds.filter((sid) => s.sets[sid].exerciseId === exerciseId))
@@ -59,16 +62,18 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
         <View style={styles.checkCol} />
       </View>
 
-      {/* Placeholder set rows */}
+      {/* Set rows */}
       {sets.map((s) => (
-        <View key={s.localId} style={styles.setRow}>
-          <Text style={[styles.setNumber, styles.setNumberCol]}>{s.setOrder}</Text>
-          <Text style={[styles.placeholder, styles.weightCol]}>—</Text>
-          <Text style={[styles.placeholder, styles.repsCol]}>—</Text>
-          <View style={styles.checkCol}>
-            <View style={styles.emptyCircle} />
-          </View>
-        </View>
+        <SetRow
+          key={s.localId}
+          localId={s.localId}
+          setOrder={s.setOrder}
+          weight={s.weight}
+          reps={s.reps}
+          isComplete={s.isComplete}
+          onUpdateSet={updateSet}
+          onCompleteSet={completeSet}
+        />
       ))}
     </View>
   );
@@ -149,30 +154,7 @@ const createStyles = (colors: Colors) =>
       textAlign: 'center',
     },
     checkCol: {
-      width: 40,
+      width: 56,
       alignItems: 'center',
-    },
-    setRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-    },
-    setNumber: {
-      fontSize: 14,
-      fontWeight: '600',
-      color: colors.textSecondary,
-    },
-    placeholder: {
-      fontSize: 15,
-      color: colors.textMuted,
-      textAlign: 'center',
-    },
-    emptyCircle: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      borderWidth: 2,
-      borderColor: colors.border,
     },
   });

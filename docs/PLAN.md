@@ -19,8 +19,8 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | — | Done | Bugfix: circular dependency db/database.ts ↔ db/seed.ts |
 | 4 | Done | Zustand Store + Start Workout Flow |
 | — | Done | Bugfix: safe area handling — removed headers, SafeAreaView for notch/home indicator |
-| 5 | Done | Add Exercise to Workout |
-| 6 | Not started | SetRow + Set Logging (CRITICAL) |
+| 5 | Done | Add Exercise to Workout (1 set default, not 3) |
+| 6 | Done | SetRow + Set Logging (CRITICAL) |
 | 7 | Not started | Last Performance Display |
 | 8 | Not started | Finish Workout + Summary + Home Recent |
 | 9 | Not started | History Screen + Detail |
@@ -105,13 +105,16 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 **Goal**: Select exercises from library to add to active workout.
 
 **Create:**
-- `components/ExerciseCard.tsx` — Exercise name, "Last: ..." placeholder, set list area, "Add Set" button
-- `app/workout/add-exercise.tsx` — Exercise picker (reuses search/filter logic), tapping adds exercise + 3 empty sets to store
+- `components/ExerciseCard.tsx` — Exercise name, "Last: --" placeholder, set column headers, placeholder set rows, "Add Set" button. Memo-wrapped, uses `useShallow` for set list filtering.
+- `app/workout/add-exercise.tsx` — Exercise picker modal with search, muscle group chips, already-added exercises shown with checkmark (disabled). Tapping adds exercise + 1 empty set to store, then navigates back.
 
 **Modify:**
-- `app/workout/[id].tsx` — Render ExerciseCards from store, "Add Exercise" navigates to picker
+- `app/workout/[id].tsx` — Render ExerciseCards from store, "Add Exercise" navigates to picker via `router.push('/workout/add-exercise')`
+- `app/_layout.tsx` — Register `workout/add-exercise` as `presentation: 'modal'` with `gestureEnabled: true`
 
-**Test**: Add exercises to workout, they appear as cards. Can add multiple.
+**Note**: Default is 1 set per exercise added (not 3 as originally planned). User can tap "Add Set" for more.
+
+**Test**: Add exercises to workout, they appear as cards. Can add multiple. Already-added exercises show checkmark.
 
 ---
 
@@ -120,13 +123,21 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 **Goal**: Core interaction — enter weight/reps, tap complete, haptic fires, row tints rose.
 
 **Create:**
-- `components/SetRow.tsx` — Set number, weight input (numeric, `onEndEditing`), reps input, 56x56 complete button. Completed = rose fill + `primaryLight` bg. Haptic on complete.
+- `components/SetRow.tsx` — Memo-wrapped presentational component. Props: localId, setOrder, weight, reps, isComplete, onUpdateSet, onCompleteSet.
+  - Local `useState<string>` for weight/reps text (avoids store writes per keystroke)
+  - `onEndEditing` parses text → number and calls `onUpdateSet`
+  - `onChangeText` updates local string state only
+  - Complete button: 56x56 Pressable, `Ionicons checkmark-circle` (filled, primary) when done, `ellipse-outline` (border color) when pending
+  - Haptic on complete: `Haptics.impactAsync(ImpactFeedbackStyle.Light)`
+  - Completed row: `primaryLight` background tint
+  - Inputs: `keyboardType="numeric"`, `selectTextOnFocus`, fontSize 20, fontWeight '700', bordered, minHeight 44
 
 **Modify:**
-- `components/ExerciseCard.tsx` — Render SetRows, wire to store, "Add Set" button
-- `store/useWorkoutStore.ts` — Refine write logic: insert to SQLite on complete, update on re-complete
+- `components/ExerciseCard.tsx` — Import SetRow, add `updateSet`/`completeSet` store selectors, replace placeholder set rows with `<SetRow>` components, update `checkCol` width from 40→56 to match, remove unused styles (setRow, setNumber, placeholder, emptyCircle)
 
-**Test**: Full set logging flow. Enter weight/reps, complete, haptic fires, visual feedback works. Add/remove sets.
+**No store changes needed** — `updateSet`, `completeSet`, `removeSet` are already implemented and handle DB writes correctly.
+
+**Test**: Enter weight/reps → blur commits to store. Tap complete → haptic fires, row turns pink, circle fills rose. Un-complete toggles back. Null weight/reps allowed (bodyweight). Column headers align with inputs.
 
 ---
 
