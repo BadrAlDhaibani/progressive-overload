@@ -1,17 +1,28 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { getAllExercises } from '@/db/exercises';
 import { getAllTemplates } from '@/db/templates';
+import { createWorkout } from '@/db/workouts';
+import { useWorkoutStore } from '@/store/useWorkoutStore';
 
 export default function HomeContent() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const router = useRouter();
+  const startWorkout = useWorkoutStore((s) => s.startWorkout);
 
   // DEBUG: remove after verification
   const exerciseCount = useMemo(() => getAllExercises().length, []);
   const templateCount = useMemo(() => getAllTemplates().length, []);
+
+  const handleStartWorkout = useCallback(() => {
+    const id = createWorkout();
+    startWorkout(id);
+    router.push(`/workout/${id}`);
+  }, [startWorkout, router]);
 
   return (
     <View style={styles.container}>
@@ -22,6 +33,7 @@ export default function HomeContent() {
         {exerciseCount} exercises, {templateCount} templates
       </Text>
       <Pressable
+        onPress={handleStartWorkout}
         style={({ pressed }) => [
           styles.startButton,
           pressed && styles.startButtonPressed,

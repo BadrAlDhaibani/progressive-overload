@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useMemo } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import PagerView from 'react-native-pager-view';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
 import HomeContent from '@/components/screens/HomeContent';
@@ -25,7 +25,6 @@ export default function TabLayout() {
   const pagerRef = useRef<PagerView>(null);
   const isTabPressing = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
-  const insets = useSafeAreaInsets();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -49,8 +48,6 @@ export default function TabLayout() {
 
   return (
     <View style={styles.container}>
-      <View style={{ paddingTop: insets.top, backgroundColor: colors.bg }} />
-
       <PagerView
         ref={pagerRef}
         style={styles.pager}
@@ -59,28 +56,30 @@ export default function TabLayout() {
         onPageSelected={onPageSelected}
       >
         {tabs.map((tab, index) => (
-          <View key={index} style={styles.page}>
+          <SafeAreaView key={index} style={styles.page} edges={['top']}>
             <tab.Component />
-          </View>
+          </SafeAreaView>
         ))}
       </PagerView>
 
-      <View style={[styles.tabBar, { paddingBottom: insets.bottom }]}>
-        {tabs.map((tab, index) => {
-          const isActive = index === activeIndex;
-          const tint = isActive ? colors.primary : colors.textMuted;
-          return (
-            <Pressable
-              key={index}
-              style={styles.tabItem}
-              onPress={() => onTabPress(index)}
-            >
-              <Ionicons name={tab.icon} size={24} color={tint} />
-              <Text style={[styles.tabLabel, { color: tint }]}>{tab.title}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      <SafeAreaView edges={['bottom']} style={{ backgroundColor: colors.bg }}>
+        <View style={styles.tabBar}>
+          {tabs.map((tab, index) => {
+            const isActive = index === activeIndex;
+            const tint = isActive ? colors.primary : colors.textMuted;
+            return (
+              <Pressable
+                key={index}
+                style={styles.tabItem}
+                onPress={() => onTabPress(index)}
+              >
+                <Ionicons name={tab.icon} size={24} color={tint} />
+                <Text style={[styles.tabLabel, { color: tint }]}>{tab.title}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </SafeAreaView>
     </View>
   );
 }

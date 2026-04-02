@@ -15,7 +15,9 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 1 | Done | Design Tokens + Navigation Shell |
 | 2 | Done | Database Layer + Seed Data |
 | 3 | Done | Exercise Library Screen |
-| 4 | Not started | Zustand Store + Start Workout Flow |
+| — | Done | Bugfix: tab bar icon jitter on tap + swipe delay (PagerView scroll/select handling) |
+| — | Done | Bugfix: circular dependency db/database.ts ↔ db/seed.ts |
+| 4 | Done | Zustand Store + Start Workout Flow |
 | 5 | Not started | Add Exercise to Workout |
 | 6 | Not started | SetRow + Set Logging (CRITICAL) |
 | 7 | Not started | Last Performance Display |

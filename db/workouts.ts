@@ -45,6 +45,10 @@ export function finishWorkout(id: number): void {
   );
 }
 
+export function deleteWorkout(id: number): void {
+  db.runSync('DELETE FROM workouts WHERE id = ?', id);
+}
+
 export function getRecentWorkouts(limit: number): Workout[] {
   return db.getAllSync<Workout>(
     'SELECT * FROM workouts WHERE finished_at IS NOT NULL ORDER BY started_at DESC LIMIT ?',
