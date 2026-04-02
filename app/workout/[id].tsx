@@ -15,6 +15,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
+import ExerciseCard from '@/components/ExerciseCard';
 
 function formatElapsed(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -98,10 +99,9 @@ export default function WorkoutScreen() {
                 </Text>
               </View>
             ) : (
-              <Text style={styles.exerciseCount}>
-                {exerciseIds.length} exercise
-                {exerciseIds.length !== 1 ? 's' : ''} added
-              </Text>
+              exerciseIds.map((id) => (
+                <ExerciseCard key={id} exerciseId={id} />
+              ))
             )}
 
             <Pressable
@@ -109,6 +109,7 @@ export default function WorkoutScreen() {
                 styles.addExerciseButton,
                 pressed && styles.addExerciseButtonPressed,
               ]}
+              onPress={() => router.push('/workout/add-exercise')}
             >
               <Text style={styles.addExerciseText}>+ Add Exercise</Text>
             </Pressable>
@@ -175,12 +176,6 @@ const createStyles = (colors: Colors) =>
     emptySubtitle: {
       fontSize: 15,
       color: colors.textSecondary,
-    },
-    exerciseCount: {
-      fontSize: 15,
-      color: colors.textSecondary,
-      textAlign: 'center',
-      marginBottom: 16,
     },
     addExerciseButton: {
       borderWidth: 1,

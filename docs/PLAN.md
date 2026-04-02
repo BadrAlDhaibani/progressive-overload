@@ -18,7 +18,8 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | — | Done | Bugfix: tab bar icon jitter on tap + swipe delay (PagerView scroll/select handling) |
 | — | Done | Bugfix: circular dependency db/database.ts ↔ db/seed.ts |
 | 4 | Done | Zustand Store + Start Workout Flow |
-| 5 | Not started | Add Exercise to Workout |
+| — | Done | Bugfix: safe area handling — removed headers, SafeAreaView for notch/home indicator |
+| 5 | Done | Add Exercise to Workout |
 | 6 | Not started | SetRow + Set Logging (CRITICAL) |
 | 7 | Not started | Last Performance Display |
 | 8 | Not started | Finish Workout + Summary + Home Recent |
