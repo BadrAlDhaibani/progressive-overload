@@ -20,6 +20,7 @@ import {
   type Exercise,
 } from '@/db/exercises';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
+import { getLastPerformance } from '@/db/workouts';
 import ExerciseListItem from '@/components/ExerciseListItem';
 
 export default function AddExerciseScreen() {
@@ -29,9 +30,11 @@ export default function AddExerciseScreen() {
   const [search, setSearch] = useState('');
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
 
+  const workoutId = useWorkoutStore((s) => s.workoutId);
   const exerciseIds = useWorkoutStore((s) => s.exerciseIds);
   const addExercise = useWorkoutStore((s) => s.addExercise);
   const addSet = useWorkoutStore((s) => s.addSet);
+  const addSetWithValues = useWorkoutStore((s) => s.addSetWithValues);
 
   const exercises = useMemo(() => {
     if (search.trim()) {
@@ -55,10 +58,22 @@ export default function AddExerciseScreen() {
     (exercise: Exercise) => {
       if (exerciseIds.includes(exercise.id)) return;
       addExercise(exercise.id, exercise.name, exercise.muscle_group);
-      addSet(exercise.id);
+
+      const lastSets = workoutId !== null
+        ? getLastPerformance(exercise.id, workoutId)
+        : [];
+
+      if (lastSets.length > 0) {
+        for (const s of lastSets) {
+          addSetWithValues(exercise.id, s.weight, s.reps);
+        }
+      } else {
+        addSet(exercise.id);
+      }
+
       router.back();
     },
-    [exerciseIds, addExercise, addSet]
+    [exerciseIds, workoutId, addExercise, addSet, addSetWithValues]
   );
 
   const renderItem = useCallback(

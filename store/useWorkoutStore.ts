@@ -37,7 +37,9 @@ interface WorkoutState {
   startWorkout: (id: number) => void;
   addExercise: (id: number, name: string, muscleGroup: string) => void;
   addSet: (exerciseId: number) => void;
+  addSetWithValues: (exerciseId: number, weight: number | null, reps: number | null) => void;
   updateSet: (localId: string, weight: number | null, reps: number | null) => void;
+  removeExercise: (exerciseId: number) => void;
   removeSet: (localId: string) => void;
   completeSet: (localId: string) => void;
   finishWorkout: () => void;
@@ -105,6 +107,31 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
     });
   },
 
+  addSetWithValues: (exerciseId: number, weight: number | null, reps: number | null) => {
+    const state = get();
+    const localId = `set_${state.nextLocalId}`;
+    const existingCount = state.setIds.filter(
+      (sid) => state.sets[sid].exerciseId === exerciseId
+    ).length;
+
+    set({
+      setIds: [...state.setIds, localId],
+      sets: {
+        ...state.sets,
+        [localId]: {
+          localId,
+          exerciseId,
+          setOrder: existingCount + 1,
+          weight,
+          reps,
+          isComplete: false,
+          dbId: null,
+        },
+      },
+      nextLocalId: state.nextLocalId + 1,
+    });
+  },
+
   updateSet: (localId: string, weight: number | null, reps: number | null) => {
     const state = get();
     const existing = state.sets[localId];
@@ -115,6 +142,39 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
         ...state.sets,
         [localId]: { ...existing, weight, reps },
       },
+    });
+  },
+
+  removeExercise: (exerciseId: number) => {
+    const state = get();
+
+    // Delete all persisted sets for this exercise
+    const setsToRemove = state.setIds.filter(
+      (sid) => state.sets[sid].exerciseId === exerciseId
+    );
+    for (const sid of setsToRemove) {
+      if (state.sets[sid].dbId !== null) {
+        dbDeleteSet(state.sets[sid].dbId!);
+      }
+    }
+
+    // Remove sets from collections
+    const newSetIds = state.setIds.filter(
+      (sid) => state.sets[sid].exerciseId !== exerciseId
+    );
+    const newSets: Record<string, WorkoutSet> = {};
+    for (const sid of newSetIds) {
+      newSets[sid] = state.sets[sid];
+    }
+
+    // Remove exercise
+    const { [exerciseId]: _, ...newExercises } = state.exercises;
+
+    set({
+      exerciseIds: state.exerciseIds.filter((id) => id !== exerciseId),
+      exercises: newExercises,
+      setIds: newSetIds,
+      sets: newSets,
     });
   },
 

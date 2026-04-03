@@ -21,7 +21,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | — | Done | Bugfix: safe area handling — removed headers, SafeAreaView for notch/home indicator |
 | 5 | Done | Add Exercise to Workout (1 set default, not 3) |
 | 6 | Done | SetRow + Set Logging (CRITICAL) |
-| 7 | Not started | Last Performance Display |
+| 7 | Done | Last Performance Display |
 | 8 | Not started | Finish Workout + Summary + Home Recent |
 | 9 | Not started | History Screen + Detail |
 | 10 | Not started | Templates |

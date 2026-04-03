@@ -1,10 +1,12 @@
-import { memo, useMemo } from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import { memo, useMemo, useCallback } from 'react';
+import { StyleSheet, Text, View, Pressable, Alert } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useWorkoutStore, type WorkoutSet } from '@/store/useWorkoutStore';
+import { getLastPerformance } from '@/db/workouts';
+import { formatLastPerformance } from '@/utils/formatLastPerformance';
 import SetRow from './SetRow';
 
 interface ExerciseCardProps {
@@ -15,10 +17,13 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const workoutId = useWorkoutStore((s) => s.workoutId);
   const exercise = useWorkoutStore((s) => s.exercises[exerciseId]);
   const addSet = useWorkoutStore((s) => s.addSet);
   const updateSet = useWorkoutStore((s) => s.updateSet);
   const completeSet = useWorkoutStore((s) => s.completeSet);
+  const removeSet = useWorkoutStore((s) => s.removeSet);
+  const removeExercise = useWorkoutStore((s) => s.removeExercise);
 
   const setLocalIds = useWorkoutStore(
     useShallow((s) => s.setIds.filter((sid) => s.sets[sid].exerciseId === exerciseId))
@@ -26,15 +31,35 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
   const allSets = useWorkoutStore((s) => s.sets);
   const sets: WorkoutSet[] = setLocalIds.map((sid) => allSets[sid]);
 
+  const lastSets = useMemo(() => {
+    if (workoutId === null) return [];
+    return getLastPerformance(exerciseId, workoutId);
+  }, [exerciseId, workoutId]);
+
+  const lastSummary = useMemo(() => formatLastPerformance(lastSets), [lastSets]);
+
+  const handleLongPress = useCallback(() => {
+    Alert.alert('Remove Exercise', `Remove ${exercise?.exerciseName}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => removeExercise(exerciseId),
+      },
+    ]);
+  }, [exercise?.exerciseName, exerciseId, removeExercise]);
+
   if (!exercise) return null;
 
   return (
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.exerciseName} numberOfLines={1}>
-          {exercise.exerciseName}
-        </Text>
+        <Pressable onLongPress={handleLongPress} delayLongPress={400} style={styles.exerciseNameWrap}>
+          <Text style={styles.exerciseName} numberOfLines={1}>
+            {exercise.exerciseName}
+          </Text>
+        </Pressable>
         <Pressable
           onPress={() => addSet(exerciseId)}
           hitSlop={8}
@@ -49,7 +74,7 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
       </View>
 
       {/* Last performance placeholder */}
-      <Text style={styles.lastPerformance}>Last: --</Text>
+      <Text style={styles.lastPerformance}>{lastSummary}</Text>
 
       {/* Divider */}
       <View style={styles.divider} />
@@ -73,6 +98,7 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
           isComplete={s.isComplete}
           onUpdateSet={updateSet}
           onCompleteSet={completeSet}
+          onRemoveSet={removeSet}
         />
       ))}
     </View>
@@ -97,12 +123,14 @@ const createStyles = (colors: Colors) =>
       paddingTop: 14,
       paddingBottom: 4,
     },
+    exerciseNameWrap: {
+      flex: 1,
+      marginRight: 12,
+    },
     exerciseName: {
       fontSize: 16,
       fontWeight: '600',
       color: colors.text,
-      flex: 1,
-      marginRight: 12,
     },
     addSetButton: {
       flexDirection: 'row',
