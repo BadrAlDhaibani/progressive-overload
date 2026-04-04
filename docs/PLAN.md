@@ -22,7 +22,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 5 | Done | Add Exercise to Workout (1 set default, not 3) |
 | 6 | Done | SetRow + Set Logging (CRITICAL) |
 | 7 | Done | Last Performance Display |
-| 8 | Not started | Finish Workout + Summary + Home Recent |
+| 8 | Done | Finish Workout + Summary + Home Recent |
 | 9 | Not started | History Screen + Detail |
 | 10 | Not started | Templates |
 | 11 | Not started | Polish |
@@ -141,15 +141,20 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 ---
 
-## Batch 7: Last Performance Display
+## Batch 7: Last Performance + Set/Exercise Management
 
-**Goal**: Show previous workout data per exercise.
+**Goal**: Show previous workout data per exercise, pre-fill sets from last session, and add set/exercise removal UX.
+
+**Create:**
+- `utils/formatLastPerformance.ts` — Formats last performance sets into summary string ("Last: 3 sets" or "Last: --")
 
 **Modify:**
-- `components/ExerciseCard.tsx` — Query `getLastPerformance()`, format as "Last: 3x8 @ 185 lbs", use as SetRow placeholder values
-- `db/workouts.ts` — Verify grouping logic (only most recent workout's sets)
+- `components/ExerciseCard.tsx` — Query `getLastPerformance()`, display formatted summary via `formatLastPerformance`. Long-press exercise name to remove exercise (with Alert confirmation). Pass `onRemoveSet` to SetRow.
+- `components/SetRow.tsx` — Swipe-to-delete via `Swipeable` from `react-native-gesture-handler`. Flush pending text input values to store on complete tap (fixes race condition when TextInput still focused). Added `rowDefault` background for clean swipe reveal.
+- `app/workout/add-exercise.tsx` — Pre-fill sets from last performance when adding exercise. Uses `addSetWithValues` if history exists, falls back to empty `addSet`.
+- `store/useWorkoutStore.ts` — New actions: `addSetWithValues` (add set with pre-filled weight/reps), `removeExercise` (remove exercise + its sets from state and DB).
 
-**Test**: Complete a workout, start new one with same exercise, see last performance data + pre-filled placeholders.
+**Test**: Complete a workout, start new one with same exercise — see last performance summary + pre-filled set values. Swipe set left to delete. Long-press exercise name to remove with confirmation.
 
 ---
 
@@ -158,14 +163,14 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 **Goal**: Complete workout flow end-to-end.
 
 **Create:**
-- `app/workout/summary.tsx` — Duration, exercises, sets, volume, "Done" button
+- `app/workout/summary.tsx` — Post-workout summary screen: duration (from DB timestamps), exercise count, set count, total volume, per-exercise breakdown with weight×reps. "Done" button navigates home via `router.replace('/')`. Data read from DB (`getWorkoutById` + `getWorkoutSets`) since store resets on finish. Android `BackHandler` intercepts hardware back to navigate home instead of returning to cleared workout screen.
 
 **Modify:**
-- `app/workout/[id].tsx` — Finish confirmation, discard option
-- `store/useWorkoutStore.ts` — Flush remaining sets to SQLite on finish
-- `app/(tabs)/index.tsx` — Recent workouts section (last 5)
+- `app/workout/[id].tsx` — Finish now captures `workoutId` before `finish()` resets state, then navigates to summary via `router.replace()` instead of `router.back()`.
+- `app/_layout.tsx` — Registered `workout/summary` route with `gestureEnabled: false` to prevent swiping back to dead workout screen.
+- `components/screens/HomeContent.tsx` — Removed debug exercise/template counts. Removed unused `FlatList` import. Added "Recent Workouts" section (last 5 finished workouts) with date, exercise/set counts, and duration. Tap opens summary. Uses `useFocusEffect` to refresh on tab focus.
 
-**Test**: Full flow: start, log, finish, summary, home shows recent workout.
+**Test**: Full flow: start, log, finish, summary, home shows recent workout. Tap recent workout to re-view summary. Discard skips summary. Android back on summary goes home.
 
 ---
 

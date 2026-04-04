@@ -27,6 +27,7 @@ export default function WorkoutScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
+  const workoutId = useWorkoutStore((s) => s.workoutId);
   const exerciseIds = useWorkoutStore((s) => s.exerciseIds);
   const startedAt = useWorkoutStore((s) => s.startedAt);
   const finish = useWorkoutStore((s) => s.finishWorkout);
@@ -49,8 +50,9 @@ export default function WorkoutScreen() {
       {
         text: 'Finish',
         onPress: () => {
+          const id = workoutId;
           finish();
-          router.back();
+          router.replace(`/workout/summary?workoutId=${id}`);
         },
       },
     ]);
