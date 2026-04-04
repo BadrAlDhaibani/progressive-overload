@@ -23,7 +23,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 6 | Done | SetRow + Set Logging (CRITICAL) |
 | 7 | Done | Last Performance Display |
 | 8 | Done | Finish Workout + Summary + Home Recent |
-| 9 | Not started | History Screen + Detail |
+| 9 | Done | History Screen + Detail |
 | 10 | Not started | Templates |
 | 11 | Not started | Polish |
 | 12 | Not started | Rest Timer (Optional) |
@@ -176,16 +176,14 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 ## Batch 9: History Screen + Detail
 
-**Goal**: Browse past workouts, view details.
-
-**Create:**
-- `app/history/[id].tsx` — Read-only workout detail view
+**Goal**: Browse past workouts, view details. Reuse existing summary screen as detail view.
 
 **Modify:**
-- `app/(tabs)/history.tsx` — SectionList grouped by date, tap for detail
-- `db/workouts.ts` — `getAllWorkouts()`, `getWorkoutDetail()`
+- `db/workouts.ts` — Added `getAllWorkouts()` (all finished workouts, no limit)
+- `components/screens/HistoryContent.tsx` — Full rewrite: SectionList grouped by month, enriched workout rows (exercise/set counts, duration), empty state, `useFocusEffect` refresh, navigates to summary with `from=history` param
+- `app/workout/summary.tsx` — Context-aware via `from` query param: shows "Workout Summary" heading + "Back" button when `from=history`, uses `router.back()` to return to History tab. Post-workout flow unchanged ("Workout Complete" + "Done" → Home).
 
-**Test**: History shows all workouts by date, detail view shows exercises and sets.
+**Test**: History shows all workouts grouped by month. Tap workout → summary with "Workout Summary" heading. "Back" returns to History tab. Home recent workouts still show "Workout Complete" + "Done" goes home.
 
 ---
 

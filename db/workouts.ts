@@ -56,6 +56,12 @@ export function getRecentWorkouts(limit: number): Workout[] {
   );
 }
 
+export function getAllWorkouts(): Workout[] {
+  return db.getAllSync<Workout>(
+    'SELECT * FROM workouts WHERE finished_at IS NOT NULL ORDER BY started_at DESC'
+  );
+}
+
 export function getWorkoutById(id: number): Workout | null {
   return db.getFirstSync<Workout>(
     'SELECT * FROM workouts WHERE id = ?',

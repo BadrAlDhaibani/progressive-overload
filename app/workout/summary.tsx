@@ -44,21 +44,26 @@ function groupByExercise(sets: WorkoutSetWithExercise[]): ExerciseGroup[] {
 }
 
 export default function SummaryScreen() {
-  const { workoutId } = useLocalSearchParams<{ workoutId: string }>();
+  const { workoutId, from } = useLocalSearchParams<{ workoutId: string; from?: string }>();
+  const isFromHistory = from === 'history';
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const goHome = useCallback(() => {
-    router.replace('/');
-  }, []);
+  const goBack = useCallback(() => {
+    if (isFromHistory) {
+      router.back();
+    } else {
+      router.replace('/');
+    }
+  }, [isFromHistory]);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      goHome();
+      goBack();
       return true;
     });
     return () => sub.remove();
-  }, [goHome]);
+  }, [goBack]);
 
   const workout = useMemo(
     () => (workoutId ? getWorkoutById(Number(workoutId)) : null),
@@ -94,7 +99,7 @@ export default function SummaryScreen() {
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={styles.heading}>Workout Complete</Text>
+          <Text style={styles.heading}>{isFromHistory ? 'Workout Summary' : 'Workout Complete'}</Text>
 
           <View style={styles.statsRow}>
             <View style={styles.statBox}>
@@ -142,13 +147,13 @@ export default function SummaryScreen() {
 
         <View style={styles.bottomBar}>
           <Pressable
-            onPress={goHome}
+            onPress={goBack}
             style={({ pressed }) => [
               styles.doneButton,
               pressed && styles.doneButtonPressed,
             ]}
           >
-            <Text style={styles.doneText}>Done</Text>
+            <Text style={styles.doneText}>{isFromHistory ? 'Back' : 'Done'}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
