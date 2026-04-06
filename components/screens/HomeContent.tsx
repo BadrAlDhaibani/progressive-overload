@@ -1,12 +1,22 @@
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, Pressable } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  ScrollView,
+} from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
-import { createWorkout, getRecentWorkouts } from '@/db/workouts';
+import { createWorkout, getRecentWorkouts, getLastPerformance } from '@/db/workouts';
 import { getWorkoutSets } from '@/db/workouts';
+import { getAllTemplates, getTemplateWithExercises } from '@/db/templates';
+import type { Template } from '@/db/templates';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Workout } from '@/db/workouts';
+
+const CARD_GAP = 12;
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr + 'Z');
@@ -44,7 +54,11 @@ export default function HomeContent() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const startWorkout = useWorkoutStore((s) => s.startWorkout);
+  const addExercise = useWorkoutStore((s) => s.addExercise);
+  const addSet = useWorkoutStore((s) => s.addSet);
+  const addSetWithValues = useWorkoutStore((s) => s.addSetWithValues);
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
+  const [templates, setTemplates] = useState<(Template & { exerciseCount: number })[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -60,6 +74,13 @@ export default function HomeContent() {
         };
       });
       setRecentWorkouts(enriched);
+
+      const allTemplates = getAllTemplates();
+      const withCounts = allTemplates.map((t) => {
+        const data = getTemplateWithExercises(t.id);
+        return { ...t, exerciseCount: data?.exercises.length ?? 0 };
+      });
+      setTemplates(withCounts);
     }, [])
   );
 
@@ -69,6 +90,35 @@ export default function HomeContent() {
     router.push(`/workout/${id}`);
   }, [startWorkout, router]);
 
+  const handleStartFromTemplate = useCallback(
+    (templateId: number, templateName: string) => {
+      const data = getTemplateWithExercises(templateId);
+      if (!data) return;
+
+      const id = createWorkout(templateName);
+      startWorkout(id);
+
+      for (const ex of data.exercises) {
+        addExercise(ex.exercise_id, ex.exercise_name, ex.muscle_group);
+
+        const lastSets = getLastPerformance(ex.exercise_id, id);
+        if (lastSets.length > 0) {
+          for (const s of lastSets) {
+            addSetWithValues(ex.exercise_id, s.weight, s.reps);
+          }
+        } else {
+          const count = ex.default_sets || 1;
+          for (let i = 0; i < count; i++) {
+            addSetWithValues(ex.exercise_id, null, ex.default_reps || null);
+          }
+        }
+      }
+
+      router.push(`/workout/${id}`);
+    },
+    [startWorkout, addExercise, addSet, addSetWithValues, router]
+  );
+
   const handleWorkoutPress = useCallback(
     (workoutId: number) => {
       router.push(`/workout/summary?workoutId=${workoutId}`);
@@ -77,7 +127,7 @@ export default function HomeContent() {
   );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
         <Text style={styles.title}>Proverload</Text>
         <Text style={styles.subtitle}>
@@ -94,6 +144,33 @@ export default function HomeContent() {
       >
         <Text style={styles.startButtonText}>Start Workout</Text>
       </Pressable>
+
+      {templates.length > 0 && (
+        <View style={styles.templatesSection}>
+          <Text style={styles.sectionTitle}>Templates</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.carouselContent}
+          >
+            {templates.map((t) => (
+              <Pressable
+                key={t.id}
+                onPress={() => handleStartFromTemplate(t.id, t.name)}
+                style={({ pressed }) => [
+                  styles.templateCard,
+                  pressed && styles.templateCardPressed,
+                ]}
+              >
+                <Text style={styles.templateName}>{t.name}</Text>
+                <Text style={styles.templateMeta}>
+                  {t.exerciseCount} exercise{t.exerciseCount !== 1 ? 's' : ''}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {recentWorkouts.length > 0 && (
         <View style={styles.recentSection}>
@@ -126,7 +203,7 @@ export default function HomeContent() {
           ))}
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -135,7 +212,10 @@ const createStyles = (colors: Colors) =>
     container: {
       flex: 1,
       backgroundColor: colors.bg,
+    },
+    contentContainer: {
       paddingHorizontal: 16,
+      paddingBottom: 32,
     },
     header: {
       alignItems: 'center',
@@ -167,8 +247,33 @@ const createStyles = (colors: Colors) =>
       fontSize: 17,
       fontWeight: '600',
     },
+    templatesSection: {
+      marginBottom: 24,
+    },
+    carouselContent: {
+      paddingRight: 16,
+    },
+    templateCard: {
+      backgroundColor: colors.bgCard,
+      borderRadius: 12,
+      padding: 16,
+      marginRight: CARD_GAP,
+      minWidth: 140,
+    },
+    templateCardPressed: {
+      backgroundColor: colors.bgMuted,
+    },
+    templateName: {
+      fontSize: 15,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 4,
+    },
+    templateMeta: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
     recentSection: {
-      flex: 1,
     },
     sectionTitle: {
       fontSize: 16,

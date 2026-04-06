@@ -24,7 +24,8 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 7 | Done | Last Performance Display |
 | 8 | Done | Finish Workout + Summary + Home Recent |
 | 9 | Done | History Screen + Detail |
-| 10 | Not started | Templates |
+| 10a | Done | Start Workout from Templates |
+| 10b | Not started | Template CRUD (create, edit, delete) |
 | 11 | Not started | Polish |
 | 12 | Not started | Rest Timer (Optional) |
 
@@ -187,15 +188,30 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 ---
 
-## Batch 10: Templates
+## Batch 10a: Start Workout from Templates
 
-**Goal**: Start workouts from pre-seeded templates.
+**Goal**: Surface templates on Home screen as a horizontal carousel, start workouts from them with smart set pre-filling.
 
 **Modify:**
-- `app/(tabs)/index.tsx` — Template cards section, tap to start pre-populated workout
-- `store/useWorkoutStore.ts` — `startFromTemplate()` action
+- `components/screens/HomeContent.tsx` — Horizontal carousel of template cards (minWidth 140 for consistent sizing) between Start Workout button and Recent Workouts. Tapping a template creates a named workout, populates exercises, and pre-fills sets from last performance. When no history exists, falls back to template `default_sets` × `default_reps` instead of a single empty set. Wrapped Home in ScrollView (removed dead `flex: 1` from `recentSection`).
 
-**Test**: Tap template, workout opens with correct exercises and set counts.
+**Test**: Templates show as horizontal carousel with consistent card widths. Tap template → workout opens with correct exercises. Exercises with history get pre-filled sets; exercises without get `default_sets` sets pre-filled with `default_reps`. Home page scrolls when content overflows.
+
+---
+
+## Batch 10b: Template CRUD
+
+**Goal**: Create custom templates, edit existing ones (add/remove exercises), delete templates.
+
+**Create:**
+- Template detail/edit screen — view exercises in a template, add/remove exercises
+- Create new template screen — name it, pick exercises
+
+**Modify:**
+- `db/templates.ts` — New functions: `insertTemplate()`, `addTemplateExercise()`, `removeTemplateExercise()`, `deleteTemplate()`
+- `components/screens/HomeContent.tsx` — Long-press or edit button on template cards to open edit view, FAB or button to create new template
+
+**Test**: Create custom template, add exercises, start workout from it. Edit existing template (add/remove exercises). Delete a template. Seed templates remain editable.
 
 ---
 
