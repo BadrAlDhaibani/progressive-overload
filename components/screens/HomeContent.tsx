@@ -5,13 +5,15 @@ import {
   View,
   Pressable,
   ScrollView,
+  Alert,
 } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { createWorkout, getRecentWorkouts, getLastPerformance } from '@/db/workouts';
 import { getWorkoutSets } from '@/db/workouts';
-import { getAllTemplates, getTemplateWithExercises } from '@/db/templates';
+import { getAllTemplates, getTemplateWithExercises, deleteTemplate } from '@/db/templates';
 import type { Template } from '@/db/templates';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import type { Workout } from '@/db/workouts';
@@ -75,14 +77,18 @@ export default function HomeContent() {
       });
       setRecentWorkouts(enriched);
 
-      const allTemplates = getAllTemplates();
-      const withCounts = allTemplates.map((t) => {
-        const data = getTemplateWithExercises(t.id);
-        return { ...t, exerciseCount: data?.exercises.length ?? 0 };
-      });
-      setTemplates(withCounts);
+      loadTemplates();
     }, [])
   );
+
+  const loadTemplates = useCallback(() => {
+    const allTemplates = getAllTemplates();
+    const withCounts = allTemplates.map((t) => {
+      const data = getTemplateWithExercises(t.id);
+      return { ...t, exerciseCount: data?.exercises.length ?? 0 };
+    });
+    setTemplates(withCounts);
+  }, []);
 
   const handleStartWorkout = useCallback(() => {
     const id = createWorkout();
@@ -119,6 +125,40 @@ export default function HomeContent() {
     [startWorkout, addExercise, addSet, addSetWithValues, router]
   );
 
+  const handleTemplateLongPress = useCallback(
+    (templateId: number, templateName: string) => {
+      Alert.alert(templateName, undefined, [
+        {
+          text: 'Edit',
+          onPress: () => router.push(`/template/edit?templateId=${templateId}`),
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Delete Template',
+              `Delete "${templateName}"? This cannot be undone.`,
+              [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                  text: 'Delete',
+                  style: 'destructive',
+                  onPress: () => {
+                    deleteTemplate(templateId);
+                    loadTemplates();
+                  },
+                },
+              ]
+            );
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    },
+    [router, loadTemplates]
+  );
+
   const handleWorkoutPress = useCallback(
     (workoutId: number) => {
       router.push(`/workout/summary?workoutId=${workoutId}`);
@@ -145,32 +185,42 @@ export default function HomeContent() {
         <Text style={styles.startButtonText}>Start Workout</Text>
       </Pressable>
 
-      {templates.length > 0 && (
-        <View style={styles.templatesSection}>
-          <Text style={styles.sectionTitle}>Templates</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.carouselContent}
+      <View style={styles.templatesSection}>
+        <Text style={styles.sectionTitle}>Templates</Text>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.carouselContent}
+        >
+          <Pressable
+            onPress={() => router.push('/template/edit')}
+            style={({ pressed }) => [
+              styles.templateCard,
+              styles.addTemplateCard,
+              pressed && styles.templateCardPressed,
+            ]}
           >
-            {templates.map((t) => (
-              <Pressable
-                key={t.id}
-                onPress={() => handleStartFromTemplate(t.id, t.name)}
-                style={({ pressed }) => [
-                  styles.templateCard,
-                  pressed && styles.templateCardPressed,
-                ]}
-              >
-                <Text style={styles.templateName}>{t.name}</Text>
-                <Text style={styles.templateMeta}>
-                  {t.exerciseCount} exercise{t.exerciseCount !== 1 ? 's' : ''}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+            <Ionicons name="add" size={28} color={colors.primary} />
+            <Text style={styles.addTemplateText}>New</Text>
+          </Pressable>
+          {templates.map((t) => (
+            <Pressable
+              key={t.id}
+              onPress={() => handleStartFromTemplate(t.id, t.name)}
+              onLongPress={() => handleTemplateLongPress(t.id, t.name)}
+              style={({ pressed }) => [
+                styles.templateCard,
+                pressed && styles.templateCardPressed,
+              ]}
+            >
+              <Text style={styles.templateName}>{t.name}</Text>
+              <Text style={styles.templateMeta}>
+                {t.exerciseCount} exercise{t.exerciseCount !== 1 ? 's' : ''}
+              </Text>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
 
       {recentWorkouts.length > 0 && (
         <View style={styles.recentSection}>
@@ -272,6 +322,23 @@ const createStyles = (colors: Colors) =>
     templateMeta: {
       fontSize: 13,
       color: colors.textSecondary,
+    },
+    addTemplateCard: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      backgroundColor: colors.bg,
+      minWidth: 0,
+      width: 72,
+      padding: 0,
+    },
+    addTemplateText: {
+      fontSize: 13,
+      fontWeight: '500',
+      color: colors.primary,
+      marginTop: 4,
     },
     recentSection: {
     },

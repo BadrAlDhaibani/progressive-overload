@@ -25,7 +25,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 8 | Done | Finish Workout + Summary + Home Recent |
 | 9 | Done | History Screen + Detail |
 | 10a | Done | Start Workout from Templates |
-| 10b | Not started | Template CRUD (create, edit, delete) |
+| 10b | Done | Template CRUD (create, edit, delete) |
 | 11 | Not started | Polish |
 | 12 | Not started | Rest Timer (Optional) |
 
@@ -201,17 +201,30 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 ## Batch 10b: Template CRUD
 
-**Goal**: Create custom templates, edit existing ones (add/remove exercises), delete templates.
+**Goal**: Create custom templates, edit existing ones (add/remove exercises, adjust default sets/reps), delete templates.
 
 **Create:**
-- Template detail/edit screen — view exercises in a template, add/remove exercises
-- Create new template screen — name it, pick exercises
+- `store/useTemplateFormStore.ts` — Zustand store for template form state (exercises list, add/remove/update defaults/reset). Shared between edit and pick-exercise screens.
+- `app/template/edit.tsx` — Full-screen modal for creating/editing templates. Name input, exercise list with inline sets×reps editing, add/remove exercises. ExerciseRow sub-component receives parent styles as prop.
+- `app/template/pick-exercise.tsx` — Modal exercise picker with search + muscle group chips. Reuses `ExerciseListItem`. Already-added exercises shown with checkmark (disabled). Pre-fills default_sets/reps from last performance history.
 
 **Modify:**
-- `db/templates.ts` — New functions: `insertTemplate()`, `addTemplateExercise()`, `removeTemplateExercise()`, `deleteTemplate()`
-- `components/screens/HomeContent.tsx` — Long-press or edit button on template cards to open edit view, FAB or button to create new template
+- `db/templates.ts` — New functions: `createTemplate()`, `updateTemplate()`, `deleteTemplate()`, `replaceTemplateExercises()` (transactional DELETE+INSERT). Changed `getAllTemplates()` to sort by `created_at DESC`.
+- `constants/colors.ts` — Added `textOnPrimary` token for contrast text on primary backgrounds.
+- `components/screens/HomeContent.tsx` — Templates section always visible with dashed "New" card. Long-press template for Edit/Delete menu (with confirmation). Extracted `loadTemplates()` helper reused in `useFocusEffect` and delete callback.
+- `app/_layout.tsx` — Registered `template/edit` (fullScreenModal, no gesture) and `template/pick-exercise` (modal, gesture enabled) routes.
 
-**Test**: Create custom template, add exercises, start workout from it. Edit existing template (add/remove exercises). Delete a template. Seed templates remain editable.
+**Code review fixes applied:**
+- Transaction wrapping on `replaceTemplateExercises` to prevent partial data loss
+- Replaced hardcoded `#ffffff` with `colors.textOnPrimary` token
+- Removed unused `useFocusEffect` import from edit.tsx
+- Deduplicated exercise mapping in `handleSave`
+- Extracted `loadTemplates` to eliminate duplicate template-fetching logic
+- `ExerciseRow` receives styles as prop instead of recreating per instance
+- Stable `Separator` components via `useCallback` for FlatList
+- Documented magic `0` in `getLastPerformance` call
+
+**Test**: Create custom template, add exercises with sets×reps, save. Edit existing template (rename, add/remove exercises, change defaults). Delete template with confirmation. Start workout from custom template. "New" card always visible in carousel.
 
 ---
 

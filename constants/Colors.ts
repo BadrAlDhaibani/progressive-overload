@@ -24,6 +24,9 @@ const lightColors = {
   // Semantic
   success: '#22c55e',
   error: '#ef4444',
+
+  // Contrast text on primary bg
+  textOnPrimary: '#ffffff',
 } as const;
 
 export type Colors = typeof lightColors;
@@ -47,6 +50,8 @@ const darkColors: Colors = {
 
   success: '#22c55e',
   error: '#ef4444',
+
+  textOnPrimary: '#ffffff',
 };
 
 export function useColors(): Colors {
