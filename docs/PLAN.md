@@ -27,7 +27,14 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 10a | Done | Start Workout from Templates |
 | 10b | Done | Template CRUD (create, edit, delete) |
 | 11 | Done | Polish |
-| 12 | Not started | Rest Timer (Optional) |
+| P1 | Not started | Inter Font Loading |
+| P2 | Not started | Apply Inter Across All Components |
+| P3 | Not started | Muscle Group Badge Colors |
+| P4 | Not started | Card Shadows & Depth |
+| P5 | Not started | Screen Fade-In Animations |
+| P6 | Not started | Button Press Scale Animation |
+| P7 | Not started | Set Completion Bounce Animation |
+| P8 | Not started | Gradient Start Workout Button (Optional) |
 
 ---
 
@@ -257,15 +264,160 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 ---
 
-## Batch 12 (Optional): Rest Timer
+## Batch P1: Inter Font Loading
+
+**Goal**: Load Inter font weights, create typography constants. No visual change yet.
+
+**Install:** `npx expo install @expo-google-fonts/inter`
 
 **Create:**
-- `store/useTimerStore.ts` — Timer state
-- `components/RestTimer.tsx` — Floating countdown bar, duration presets, haptic on zero
+- `constants/typography.ts` — Font family map: `{ regular: 'Inter_400Regular', medium: 'Inter_500Medium', semiBold: 'Inter_600SemiBold', bold: 'Inter_700Bold' }`
 
 **Modify:**
-- `app/workout/[id].tsx` — Render RestTimer
-- `store/useWorkoutStore.ts` — Auto-start timer on set complete
+- `app/_layout.tsx` — Import Inter weights from `@expo-google-fonts/inter`, add to `useFonts` call
+
+**Test:** App launches without errors, splash screen dismisses correctly.
+
+---
+
+## Batch P2: Apply Inter Across All Components
+
+**Goal**: Replace system font with Inter across the entire app.
+
+**Key rule:** On Android, `fontWeight` is ignored when `fontFamily` is set. Replace `fontWeight` with the matching `fontFamily` entry and remove `fontWeight`.
+
+**Weight mapping:**
+- `'400'` → `fonts.regular`
+- `'500'` → `fonts.medium`
+- `'600'` → `fonts.semiBold`
+- `'700'` → `fonts.bold`
+
+**Modify (all files with text styles):**
+1. `components/screens/HomeContent.tsx`
+2. `components/screens/HistoryContent.tsx`
+3. `components/screens/ExercisesContent.tsx`
+4. `components/ExerciseCard.tsx`
+5. `components/ExerciseListItem.tsx`
+6. `components/SetRow.tsx`
+7. `app/workout/[id].tsx`
+8. `app/workout/summary.tsx`
+9. `app/workout/add-exercise.tsx`
+10. `app/template/edit.tsx`
+11. `app/template/pick-exercise.tsx`
+12. `app/(tabs)/_layout.tsx` (tab bar label font)
+
+**Note:** `TextInput` components also need `fontFamily` for typed text to render in Inter.
+
+**Test:** Open every screen — all text renders in Inter. Bold numbers in SetRow still look bold. No text clipping.
+
+---
+
+## Batch P3: Muscle Group Badge Colors
+
+**Goal**: Each of the 10 muscle groups gets a unique pastel badge color.
+
+**Create:**
+- `constants/muscleGroupColors.ts` — Map of `MuscleGroup` → `{ bg, text }` color pairs. Soft pastels:
+  - Chest: rose-red, Back: blue, Shoulders: orange, Biceps: green, Triceps: purple
+  - Quads: teal, Hamstrings: amber, Glutes: pink, Core: deep purple, Calves: dark teal
+
+**Modify:**
+- `components/ExerciseListItem.tsx` — Import color map, use per-group colors for badge (fallback to rose)
+- `components/screens/ExercisesContent.tsx` — Color active filter chips with group color
+- `app/workout/add-exercise.tsx` — Same chip coloring
+- `app/workout/summary.tsx` — Color muscle group labels if present
+
+**Test:** Exercises tab shows distinct badge colors per group. Filter chips tint to match. Summary screen matches.
+
+---
+
+## Batch P4: Card Shadows & Depth
+
+**Goal**: Soft shadows on all card elements for visual hierarchy.
+
+**Create:**
+- `constants/shadows.ts` — Platform-aware shadow style:
+  - iOS: `shadowColor '#000', shadowOffset {0,2}, shadowOpacity 0.08, shadowRadius 8`
+  - Android: `elevation: 2`
+
+**Modify:**
+- `components/ExerciseCard.tsx` — Add shadow. Handle `overflow: 'hidden'` conflict on iOS (wrap in outer View with shadow, keep overflow hidden on inner)
+- `components/screens/HomeContent.tsx` — Shadow on `.startButton`, `.templateCard`, `.workoutRow`
+- `components/screens/HistoryContent.tsx` — Shadow on `.workoutRow`
+- `app/workout/summary.tsx` — Shadow on stat cards / exercise blocks
+
+**Test:** Cards float above background on both iOS and Android. Swipe-to-delete on SetRow still works.
+
+---
+
+## Batch P5: Screen Fade-In Animations
+
+**Goal**: Smooth fade-in when navigating to screens.
+
+**Create:**
+- `components/AnimatedScreen.tsx` — Reanimated `Animated.View` wrapper with `FadeIn.duration(300)` entering animation
+
+**Modify (wrap screen content):**
+- `components/screens/HomeContent.tsx`
+- `components/screens/HistoryContent.tsx`
+- `components/screens/ExercisesContent.tsx`
+- `app/workout/[id].tsx`
+- `app/workout/summary.tsx`
+
+**Test:** Navigate between tabs/screens — content fades in smoothly. No flickering or double-animation. Tab swiping still smooth.
+
+---
+
+## Batch P6: Button Press Scale Animation
+
+**Goal**: Subtle scale-down (0.97) on press for tactile visual feedback.
+
+**Create:**
+- `components/AnimatedPressable.tsx` — Reanimated-powered pressable: press scales to 0.97 (100ms), release to 1.0 (150ms). Accepts all Pressable props.
+
+**Modify (replace key Pressables):**
+- `components/screens/HomeContent.tsx` — Start Workout button, template cards, workout rows
+- `components/ExerciseCard.tsx` — Add Set button
+- `app/workout/[id].tsx` — Finish Workout, Add Exercise buttons
+- `app/workout/summary.tsx` — Done/Back button
+
+**Test:** Press and hold buttons — visible shrink. Release — spring back. Works alongside existing press color changes.
+
+---
+
+## Batch P7: Set Completion Bounce Animation
+
+**Goal**: Satisfying pulse animation when completing a set.
+
+**Modify:**
+- `components/SetRow.tsx` — Reanimated scale animation on completion:
+  - Track previous `isComplete` with `useRef`
+  - On `false → true`: `withSequence(withTiming(1.03, 100ms), withTiming(1.0, 150ms))` on row
+  - Checkmark icon: brief `1.0 → 1.2 → 1.0` pop
+  - Wrap row in `Animated.View` with `useAnimatedStyle`
+
+**Test:** Complete a set — row briefly pulses, checkmark pops. Uncomplete doesn't animate. Rapid completions don't lag. Swipeable still works.
+
+---
+
+## Batch P8 (Optional): Gradient Start Workout Button
+
+**Install:** `npx expo install expo-linear-gradient`
+
+**Modify:**
+- `components/screens/HomeContent.tsx` — Replace solid background with `LinearGradient` from `primaryMedium` → `primary`. Wrap in `AnimatedPressable` from P6.
+
+**Test:** Home button has subtle gradient. Press scales down. Still navigates correctly.
+
+---
+
+## Dependency Order
+
+```
+P1 → P2 (font must load before applying)
+P3, P4, P5, P6, P7 are independent (any order after P2)
+P8 depends on P6 (uses AnimatedPressable)
+```
 
 ---
 
