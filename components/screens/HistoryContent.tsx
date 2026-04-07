@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, SectionList } from 'react-native';
+import { StyleSheet, Text, View, Pressable, SectionList, RefreshControl } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
@@ -70,23 +70,22 @@ export default function HistoryContent() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const [workouts, setWorkouts] = useState<EnrichedWorkout[]>([]);
+  const loadWorkouts = useCallback(() => {
+    const all = getAllWorkouts();
+    const enriched: EnrichedWorkout[] = all.map((w) => {
+      const sets = getWorkoutSets(w.id);
+      const completedSets = sets.filter((s) => s.is_complete);
+      const exerciseIds = new Set(completedSets.map((s) => s.exercise_id));
+      return {
+        ...w,
+        setCount: completedSets.length,
+        exerciseCount: exerciseIds.size,
+      };
+    });
+    setWorkouts(enriched);
+  }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      const all = getAllWorkouts();
-      const enriched: EnrichedWorkout[] = all.map((w) => {
-        const sets = getWorkoutSets(w.id);
-        const completedSets = sets.filter((s) => s.is_complete);
-        const exerciseIds = new Set(completedSets.map((s) => s.exercise_id));
-        return {
-          ...w,
-          setCount: completedSets.length,
-          exerciseCount: exerciseIds.size,
-        };
-      });
-      setWorkouts(enriched);
-    }, [])
-  );
+  useFocusEffect(loadWorkouts);
 
   const sections = useMemo(() => groupByMonth(workouts), [workouts]);
 
@@ -113,6 +112,14 @@ export default function HistoryContent() {
         keyExtractor={(item) => item.id.toString()}
         stickySectionHeadersEnabled={false}
         contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={loadWorkouts}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         renderSectionHeader={({ section: { title } }) => (
           <Text style={styles.sectionHeader}>{title}</Text>
         )}

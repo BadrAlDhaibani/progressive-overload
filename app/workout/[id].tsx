@@ -230,6 +230,6 @@ const createStyles = (colors: Colors) =>
     finishText: {
       fontSize: 15,
       fontWeight: '600',
-      color: '#ffffff',
+      color: colors.textOnPrimary,
     },
   });

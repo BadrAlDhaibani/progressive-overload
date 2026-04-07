@@ -26,7 +26,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 9 | Done | History Screen + Detail |
 | 10a | Done | Start Workout from Templates |
 | 10b | Done | Template CRUD (create, edit, delete) |
-| 11 | Not started | Polish |
+| 11 | Done | Polish |
 | 12 | Not started | Rest Timer (Optional) |
 
 ---
@@ -230,13 +230,30 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 ## Batch 11: Polish
 
-**Goal**: Visual consistency, edge cases, haptics audit.
+**Goal**: Visual consistency, pull-to-refresh, minor UX improvements.
 
-- Audit all files for hardcoded colors, undersized touch targets
-- Handle edge cases: empty workouts, bodyweight exercises, long names
-- Pull-to-refresh on History/Exercises
-- Keyboard dismiss on scroll, KeyboardAvoidingView verification
-- Safe area insets on all screens
+**Hardcoded color fixes (9 instances):**
+- Replaced all `#ffffff` with `colors.textOnPrimary` across 7 files: SetRow, HomeContent, ExercisesContent (×4), add-exercise, summary, [id]
+- Added `colors` to `renderRightActions` dep array in SetRow
+
+**Pull-to-refresh (3 screens):**
+- `HistoryContent.tsx` — Extracted `loadWorkouts`, added `RefreshControl` to `SectionList`
+- `ExercisesContent.tsx` — Added `RefreshControl` to main `FlatList` (bumps `refreshKey`)
+- `HomeContent.tsx` — Extracted `loadData`, added `RefreshControl` to `ScrollView`
+- All use `colors.primary` tint for the spinner
+
+**Minor improvements:**
+- `SetRow.tsx` — hitSlop 4→8 on checkbox (effective target now 44px)
+- `ExercisesContent.tsx` — Stabilized `ItemSeparatorComponent` with `useCallback`
+
+**Already handled (no changes needed):**
+- Safe area insets: tab layout wraps pages in SafeAreaView
+- Edge cases: empty workouts, bodyweight (BW), long names (numberOfLines={1})
+- Keyboard: KeyboardAvoidingView + keyboardDismissMode on relevant screens
+- Touch targets: all ≥44px
+- Haptics: already on set complete
+
+**Test**: Pull down on Home, History, Exercises → spinner appears with rose tint, data reloads. All buttons/text on primary backgrounds still readable. Checkbox easy to tap near edges.
 
 ---
 

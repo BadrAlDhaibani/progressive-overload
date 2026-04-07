@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
+  RefreshControl,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -77,6 +78,9 @@ export default function ExercisesContent() {
 
   const keyExtractor = useCallback((item: Exercise) => item.id.toString(), []);
 
+  const Separator = useCallback(() => <View style={styles.separator} />, [styles]);
+
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -130,7 +134,7 @@ export default function ExercisesContent() {
               <Text
                 style={[
                   styles.chipText,
-                  isActive && { color: '#ffffff' },
+                  isActive && { color: colors.textOnPrimary },
                 ]}
               >
                 {item}
@@ -147,8 +151,16 @@ export default function ExercisesContent() {
         renderItem={renderItem}
         style={styles.list}
         contentContainerStyle={exercises.length === 0 ? styles.emptyContainer : undefined}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ItemSeparatorComponent={Separator}
         keyboardDismissMode="on-drag"
+        refreshControl={
+          <RefreshControl
+            refreshing={false}
+            onRefresh={() => setRefreshKey((k) => k + 1)}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         ListEmptyComponent={
           <Text style={styles.emptyText}>No exercises found</Text>
         }
@@ -195,7 +207,7 @@ export default function ExercisesContent() {
                       <Text
                         style={[
                           styles.chipText,
-                          isActive && { color: '#ffffff' },
+                          isActive && { color: colors.textOnPrimary },
                         ]}
                       >
                         {item}
@@ -226,7 +238,7 @@ export default function ExercisesContent() {
                       <Text
                         style={[
                           styles.chipText,
-                          isActive && { color: '#ffffff' },
+                          isActive && { color: colors.textOnPrimary },
                         ]}
                       >
                         {item}
@@ -419,6 +431,6 @@ const createStyles = (colors: Colors) =>
     saveButtonText: {
       fontSize: 16,
       fontWeight: '600',
-      color: '#ffffff',
+      color: colors.textOnPrimary,
     },
   });

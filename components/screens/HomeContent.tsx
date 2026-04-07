@@ -6,6 +6,7 @@ import {
   Pressable,
   ScrollView,
   Alert,
+  RefreshControl,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
@@ -61,26 +62,6 @@ export default function HomeContent() {
   const addSetWithValues = useWorkoutStore((s) => s.addSetWithValues);
   const [recentWorkouts, setRecentWorkouts] = useState<RecentWorkout[]>([]);
   const [templates, setTemplates] = useState<(Template & { exerciseCount: number })[]>([]);
-
-  useFocusEffect(
-    useCallback(() => {
-      const workouts = getRecentWorkouts(5);
-      const enriched: RecentWorkout[] = workouts.map((w) => {
-        const sets = getWorkoutSets(w.id);
-        const completedSets = sets.filter((s) => s.is_complete);
-        const exerciseIds = new Set(completedSets.map((s) => s.exercise_id));
-        return {
-          ...w,
-          setCount: completedSets.length,
-          exerciseCount: exerciseIds.size,
-        };
-      });
-      setRecentWorkouts(enriched);
-
-      loadTemplates();
-    }, [])
-  );
-
   const loadTemplates = useCallback(() => {
     const allTemplates = getAllTemplates();
     const withCounts = allTemplates.map((t) => {
@@ -89,6 +70,24 @@ export default function HomeContent() {
     });
     setTemplates(withCounts);
   }, []);
+
+  const loadData = useCallback(() => {
+    const workouts = getRecentWorkouts(5);
+    const enriched: RecentWorkout[] = workouts.map((w) => {
+      const sets = getWorkoutSets(w.id);
+      const completedSets = sets.filter((s) => s.is_complete);
+      const exerciseIds = new Set(completedSets.map((s) => s.exercise_id));
+      return {
+        ...w,
+        setCount: completedSets.length,
+        exerciseCount: exerciseIds.size,
+      };
+    });
+    setRecentWorkouts(enriched);
+    loadTemplates();
+  }, [loadTemplates]);
+
+  useFocusEffect(loadData);
 
   const handleStartWorkout = useCallback(() => {
     const id = createWorkout();
@@ -161,13 +160,24 @@ export default function HomeContent() {
 
   const handleWorkoutPress = useCallback(
     (workoutId: number) => {
-      router.push(`/workout/summary?workoutId=${workoutId}`);
+      router.push(`/workout/summary?workoutId=${workoutId}&from=history`);
     },
     [router]
   );
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      refreshControl={
+        <RefreshControl
+          refreshing={false}
+          onRefresh={loadData}
+          tintColor={colors.primary}
+          colors={[colors.primary]}
+        />
+      }
+    >
       <View style={styles.header}>
         <Text style={styles.title}>Proverload</Text>
         <Text style={styles.subtitle}>
@@ -293,7 +303,7 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.primaryDark,
     },
     startButtonText: {
-      color: '#ffffff',
+      color: colors.textOnPrimary,
       fontSize: 17,
       fontWeight: '600',
     },

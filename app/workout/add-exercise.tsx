@@ -147,7 +147,7 @@ export default function AddExerciseScreen() {
               style={[styles.chip, isActive && { backgroundColor: colors.primary }]}
               onPress={() => handleChipPress(item)}
             >
-              <Text style={[styles.chipText, isActive && { color: '#ffffff' }]}>
+              <Text style={[styles.chipText, isActive && { color: colors.textOnPrimary }]}>
                 {item}
               </Text>
             </Pressable>

@@ -82,12 +82,12 @@ function SetRow({
       return (
         <Animated.View style={[styles.deleteAction, { transform: [{ translateX }] }]}>
           <Pressable onPress={handleRemove} style={styles.deleteButton}>
-            <Ionicons name="trash-outline" size={20} color="#ffffff" />
+            <Ionicons name="trash-outline" size={20} color={colors.textOnPrimary} />
           </Pressable>
         </Animated.View>
       );
     },
-    [handleRemove, styles]
+    [handleRemove, styles, colors]
   );
 
   return (
@@ -129,7 +129,7 @@ function SetRow({
 
         <Pressable
           onPress={handleComplete}
-          hitSlop={4}
+          hitSlop={8}
           style={styles.checkCol}
         >
           <Ionicons

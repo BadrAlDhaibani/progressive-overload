@@ -264,6 +264,6 @@ const createStyles = (colors: Colors) =>
     doneText: {
       fontSize: 17,
       fontWeight: '600',
-      color: '#ffffff',
+      color: colors.textOnPrimary,
     },
   });
