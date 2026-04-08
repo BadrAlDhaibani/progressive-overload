@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Pressable, SectionList, RefreshControl } from '
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { getAllWorkouts, getWorkoutSets } from '@/db/workouts';
 import type { Workout } from '@/db/workouts';
 
@@ -166,7 +167,7 @@ const createStyles = (colors: Colors) =>
     },
     sectionHeader: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       marginBottom: 12,
       marginTop: 16,
@@ -187,17 +188,18 @@ const createStyles = (colors: Colors) =>
     },
     workoutName: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       marginBottom: 4,
     },
     workoutMeta: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     workoutDuration: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textMuted,
     },
     emptyContainer: {
@@ -209,12 +211,13 @@ const createStyles = (colors: Colors) =>
     },
     emptyText: {
       fontSize: 17,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       marginBottom: 8,
     },
     hintText: {
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
   });

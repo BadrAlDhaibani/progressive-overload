@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import type { Exercise } from '@/db/exercises';
 
 interface Props {
@@ -53,11 +54,12 @@ const createStyles = (colors: Colors) =>
     },
     name: {
       fontSize: 15,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       color: colors.text,
     },
     equipment: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
       marginTop: 2,
     },
@@ -68,6 +70,6 @@ const createStyles = (colors: Colors) =>
     },
     badgeText: {
       fontSize: 12,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
     },
   });

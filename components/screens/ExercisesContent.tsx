@@ -15,6 +15,7 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { muscleGroups } from '@/constants/muscleGroups';
 import {
   getAllExercises,
@@ -290,7 +291,7 @@ const createStyles = (colors: Colors) =>
     },
     title: {
       fontSize: 28,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
     },
     addButton: {
@@ -320,6 +321,7 @@ const createStyles = (colors: Colors) =>
     searchInput: {
       flex: 1,
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.text,
       paddingVertical: 0,
     },
@@ -339,7 +341,7 @@ const createStyles = (colors: Colors) =>
     },
     chipText: {
       fontSize: 13,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       color: colors.textSecondary,
     },
     list: {
@@ -357,6 +359,7 @@ const createStyles = (colors: Colors) =>
     },
     emptyText: {
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
 
@@ -376,13 +379,13 @@ const createStyles = (colors: Colors) =>
     },
     modalTitle: {
       fontSize: 20,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
       marginBottom: 20,
     },
     fieldLabel: {
       fontSize: 13,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textSecondary,
       marginBottom: 8,
       marginTop: 12,
@@ -394,6 +397,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 10,
       paddingHorizontal: 12,
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.text,
     },
     modalChipRow: {
@@ -414,7 +418,7 @@ const createStyles = (colors: Colors) =>
     },
     cancelButtonText: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textSecondary,
     },
     saveButton: {
@@ -430,7 +434,7 @@ const createStyles = (colors: Colors) =>
     },
     saveButtonText: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textOnPrimary,
     },
   });

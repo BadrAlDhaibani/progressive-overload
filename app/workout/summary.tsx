@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { getWorkoutById, getWorkoutSets } from '@/db/workouts';
 import type { WorkoutSetWithExercise } from '@/db/workouts';
 
@@ -173,7 +174,7 @@ const createStyles = (colors: Colors) =>
     },
     heading: {
       fontSize: 24,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
       textAlign: 'center',
       marginBottom: 24,
@@ -193,12 +194,13 @@ const createStyles = (colors: Colors) =>
     },
     statValue: {
       fontSize: 18,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
       marginBottom: 4,
     },
     statLabel: {
       fontSize: 12,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     exerciseBlock: {
@@ -215,12 +217,13 @@ const createStyles = (colors: Colors) =>
     },
     exerciseName: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       flex: 1,
     },
     muscleGroup: {
       fontSize: 12,
+      fontFamily: fonts.regular,
       color: colors.textMuted,
       textTransform: 'capitalize',
     },
@@ -231,17 +234,18 @@ const createStyles = (colors: Colors) =>
     },
     setNumber: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textMuted,
       width: 28,
     },
     setValue: {
       fontSize: 15,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       color: colors.text,
     },
     emptyText: {
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
       textAlign: 'center',
       paddingVertical: 32,
@@ -263,7 +267,7 @@ const createStyles = (colors: Colors) =>
     },
     doneText: {
       fontSize: 17,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textOnPrimary,
     },
   });

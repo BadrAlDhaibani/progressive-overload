@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { muscleGroups } from '@/constants/muscleGroups';
 import {
   getAllExercises,
@@ -186,7 +187,7 @@ const createStyles = (colors: Colors) =>
     },
     title: {
       fontSize: 20,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
     },
     closeButton: {
@@ -215,6 +216,7 @@ const createStyles = (colors: Colors) =>
     searchInput: {
       flex: 1,
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.text,
       paddingVertical: 0,
     },
@@ -234,7 +236,7 @@ const createStyles = (colors: Colors) =>
     },
     chipText: {
       fontSize: 13,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       color: colors.textSecondary,
     },
     list: {
@@ -252,6 +254,7 @@ const createStyles = (colors: Colors) =>
     },
     emptyText: {
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     disabledRow: {
@@ -267,11 +270,12 @@ const createStyles = (colors: Colors) =>
     },
     nameText: {
       fontSize: 15,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       color: colors.text,
     },
     equipmentText: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
       marginTop: 2,
     },

@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import ExerciseCard from '@/components/ExerciseCard';
 
@@ -158,7 +159,7 @@ const createStyles = (colors: Colors) =>
     },
     timerText: {
       fontSize: 28,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
       textAlign: 'center',
       marginBottom: 24,
@@ -171,12 +172,13 @@ const createStyles = (colors: Colors) =>
     },
     emptyTitle: {
       fontSize: 17,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       marginBottom: 8,
     },
     emptySubtitle: {
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     addExerciseButton: {
@@ -192,7 +194,7 @@ const createStyles = (colors: Colors) =>
     },
     addExerciseText: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.primary,
     },
     bottomBar: {
@@ -214,7 +216,7 @@ const createStyles = (colors: Colors) =>
     },
     discardText: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.error,
     },
     finishButton: {
@@ -229,7 +231,7 @@ const createStyles = (colors: Colors) =>
     },
     finishText: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textOnPrimary,
     },
   });

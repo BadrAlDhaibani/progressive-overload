@@ -5,6 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 
 interface SetRowProps {
   localId: string;
@@ -164,7 +165,7 @@ const createStyles = (colors: Colors) =>
     },
     setNumber: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textSecondary,
     },
     weightCol: {
@@ -183,7 +184,7 @@ const createStyles = (colors: Colors) =>
     },
     input: {
       fontSize: 20,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
       textAlign: 'center',
       borderWidth: 1,

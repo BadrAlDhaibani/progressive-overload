@@ -28,7 +28,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | 10b | Done | Template CRUD (create, edit, delete) |
 | 11 | Done | Polish |
 | P1 | Done | Inter Font Loading |
-| P2 | Not started | Apply Inter Across All Components |
+| P2 | Done | Apply Inter Across All Components |
 | P3 | Not started | Muscle Group Badge Colors |
 | P4 | Not started | Card Shadows & Depth |
 | P5 | Not started | Screen Fade-In Animations |

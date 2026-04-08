@@ -12,6 +12,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { createWorkout, getRecentWorkouts, getLastPerformance } from '@/db/workouts';
 import { getWorkoutSets } from '@/db/workouts';
 import { getAllTemplates, getTemplateWithExercises, deleteTemplate } from '@/db/templates';
@@ -284,12 +285,13 @@ const createStyles = (colors: Colors) =>
     },
     title: {
       fontSize: 28,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
       marginBottom: 8,
     },
     subtitle: {
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     startButton: {
@@ -305,7 +307,7 @@ const createStyles = (colors: Colors) =>
     startButtonText: {
       color: colors.textOnPrimary,
       fontSize: 17,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
     },
     templatesSection: {
       marginBottom: 24,
@@ -325,12 +327,13 @@ const createStyles = (colors: Colors) =>
     },
     templateName: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       marginBottom: 4,
     },
     templateMeta: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     addTemplateCard: {
@@ -346,7 +349,7 @@ const createStyles = (colors: Colors) =>
     },
     addTemplateText: {
       fontSize: 13,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       color: colors.primary,
       marginTop: 4,
     },
@@ -354,7 +357,7 @@ const createStyles = (colors: Colors) =>
     },
     sectionTitle: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       marginBottom: 12,
     },
@@ -374,17 +377,18 @@ const createStyles = (colors: Colors) =>
     },
     workoutName: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
       marginBottom: 4,
     },
     workoutMeta: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     workoutDuration: {
       fontSize: 14,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textMuted,
     },
   });

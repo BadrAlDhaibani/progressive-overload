@@ -13,6 +13,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import {
   getTemplateWithExercises,
   createTemplate,
@@ -296,12 +297,12 @@ const createStyles = (colors: Colors) =>
     },
     headerTitle: {
       fontSize: 17,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
     },
     saveText: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.primary,
     },
     nameContainer: {
@@ -310,7 +311,7 @@ const createStyles = (colors: Colors) =>
     },
     nameInput: {
       fontSize: 20,
-      fontWeight: '700',
+      fontFamily: fonts.bold,
       color: colors.text,
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
@@ -333,6 +334,7 @@ const createStyles = (colors: Colors) =>
     },
     emptyText: {
       fontSize: 15,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
     addButton: {
@@ -351,7 +353,7 @@ const createStyles = (colors: Colors) =>
     },
     addButtonText: {
       fontSize: 15,
-      fontWeight: '500',
+      fontFamily: fonts.medium,
       color: colors.primary,
       marginLeft: 6,
     },
@@ -369,11 +371,12 @@ const createStyles = (colors: Colors) =>
     },
     exerciseName: {
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
     },
     exerciseMeta: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
       marginTop: 2,
     },
@@ -388,17 +391,19 @@ const createStyles = (colors: Colors) =>
       backgroundColor: colors.bgMuted,
       textAlign: 'center',
       fontSize: 15,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
     },
     defaultLabel: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
       marginLeft: 3,
       marginRight: 8,
     },
     defaultSeparator: {
       fontSize: 14,
+      fontFamily: fonts.regular,
       color: colors.textMuted,
       marginRight: 8,
     },

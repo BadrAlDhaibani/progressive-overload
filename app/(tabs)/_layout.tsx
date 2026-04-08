@@ -5,6 +5,7 @@ import PagerView from 'react-native-pager-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import HomeContent from '@/components/screens/HomeContent';
 import HistoryContent from '@/components/screens/HistoryContent';
 import ExercisesContent from '@/components/screens/ExercisesContent';
@@ -111,6 +112,7 @@ const createStyles = (colors: Colors) =>
     },
     tabLabel: {
       fontSize: 10,
+      fontFamily: fonts.medium,
       marginTop: 4,
     },
   });

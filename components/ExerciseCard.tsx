@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { fonts } from '@/constants/typography';
 import { useWorkoutStore, type WorkoutSet } from '@/store/useWorkoutStore';
 import { getLastPerformance } from '@/db/workouts';
 import { formatLastPerformance } from '@/utils/formatLastPerformance';
@@ -129,7 +130,7 @@ const createStyles = (colors: Colors) =>
     },
     exerciseName: {
       fontSize: 16,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.text,
     },
     addSetButton: {
@@ -145,11 +146,12 @@ const createStyles = (colors: Colors) =>
     },
     addSetText: {
       fontSize: 13,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.primary,
     },
     lastPerformance: {
       fontSize: 13,
+      fontFamily: fonts.regular,
       color: colors.textSecondary,
       paddingHorizontal: 16,
       paddingBottom: 8,
@@ -166,7 +168,7 @@ const createStyles = (colors: Colors) =>
     },
     setHeaderText: {
       fontSize: 11,
-      fontWeight: '600',
+      fontFamily: fonts.semiBold,
       color: colors.textMuted,
       textTransform: 'uppercase',
     },
