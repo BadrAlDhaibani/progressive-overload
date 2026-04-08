@@ -2,6 +2,8 @@ import { memo, useMemo } from 'react';
 import { StyleSheet, Text, View, Pressable } from 'react-native';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
+import type { MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
 import type { Exercise } from '@/db/exercises';
 
@@ -12,7 +14,9 @@ interface Props {
 
 function ExerciseListItem({ exercise, onPress }: Props) {
   const colors = useColors();
+  const mgColors = useMuscleGroupColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const badgeColor = mgColors[exercise.muscle_group as MuscleGroup] ?? { bg: colors.primaryLight, text: colors.primary };
 
   return (
     <Pressable
@@ -25,8 +29,8 @@ function ExerciseListItem({ exercise, onPress }: Props) {
         </Text>
         <Text style={styles.equipment}>{exercise.equipment}</Text>
       </View>
-      <View style={[styles.badge, { backgroundColor: colors.primaryLight }]}>
-        <Text style={[styles.badgeText, { color: colors.primary }]}>
+      <View style={[styles.badge, { backgroundColor: badgeColor.bg }]}>
+        <Text style={[styles.badgeText, { color: badgeColor.text }]}>
           {exercise.muscle_group}
         </Text>
       </View>

@@ -12,8 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
+import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
 import { muscleGroups } from '@/constants/muscleGroups';
+import { fonts } from '@/constants/typography';
 import {
   getAllExercises,
   getExercisesByMuscleGroup,
@@ -26,6 +27,7 @@ import ExerciseListItem from '@/components/ExerciseListItem';
 
 export default function PickExerciseScreen() {
   const colors = useColors();
+  const mgColors = useMuscleGroupColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [search, setSearch] = useState('');
@@ -143,7 +145,7 @@ export default function PickExerciseScreen() {
           const isActive = item === activeGroup;
           return (
             <Pressable
-              style={[styles.chip, isActive && { backgroundColor: colors.primary }]}
+              style={[styles.chip, isActive && { backgroundColor: mgColors[item].text }]}
               onPress={() => handleChipPress(item)}
             >
               <Text style={[styles.chipText, isActive && { color: colors.textOnPrimary }]}>

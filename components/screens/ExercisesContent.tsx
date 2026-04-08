@@ -15,8 +15,9 @@ import {
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
+import { muscleGroups, type MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
-import { muscleGroups } from '@/constants/muscleGroups';
 import {
   getAllExercises,
   getExercisesByMuscleGroup,
@@ -30,6 +31,7 @@ const equipmentOptions = ['Barbell', 'Dumbbell', 'Cable', 'Machine', 'Bodyweight
 
 export default function ExercisesContent() {
   const colors = useColors();
+  const mgColors = useMuscleGroupColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [search, setSearch] = useState('');
@@ -128,7 +130,7 @@ export default function ExercisesContent() {
             <Pressable
               style={[
                 styles.chip,
-                isActive && { backgroundColor: colors.primary },
+                isActive && { backgroundColor: mgColors[item].text },
               ]}
               onPress={() => handleChipPress(item)}
             >
@@ -201,7 +203,7 @@ export default function ExercisesContent() {
                     <Pressable
                       style={[
                         styles.chip,
-                        isActive && { backgroundColor: colors.primary },
+                        isActive && { backgroundColor: mgColors[item].text },
                       ]}
                       onPress={() => setNewMuscleGroup(item)}
                     >

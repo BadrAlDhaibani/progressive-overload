@@ -4,6 +4,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
+import type { MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
 import { getWorkoutById, getWorkoutSets } from '@/db/workouts';
 import type { WorkoutSetWithExercise } from '@/db/workouts';
@@ -48,6 +50,7 @@ export default function SummaryScreen() {
   const { workoutId, from } = useLocalSearchParams<{ workoutId: string; from?: string }>();
   const isFromHistory = from === 'history';
   const colors = useColors();
+  const mgColors = useMuscleGroupColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const goBack = useCallback(() => {
@@ -127,7 +130,11 @@ export default function SummaryScreen() {
             <View key={i} style={styles.exerciseBlock}>
               <View style={styles.exerciseHeader}>
                 <Text style={styles.exerciseName}>{group.exerciseName}</Text>
-                <Text style={styles.muscleGroup}>{group.muscleGroup}</Text>
+                <View style={[styles.muscleGroupBadge, { backgroundColor: mgColors[group.muscleGroup as MuscleGroup]?.bg ?? colors.bgMuted }]}>
+                  <Text style={[styles.muscleGroupText, { color: mgColors[group.muscleGroup as MuscleGroup]?.text ?? colors.textMuted }]}>
+                    {group.muscleGroup}
+                  </Text>
+                </View>
               </View>
               {group.sets.map((s) => (
                 <View key={s.id} style={styles.setRow}>
@@ -221,10 +228,14 @@ const createStyles = (colors: Colors) =>
       color: colors.text,
       flex: 1,
     },
-    muscleGroup: {
+    muscleGroupBadge: {
+      paddingHorizontal: 8,
+      paddingVertical: 2,
+      borderRadius: 8,
+    },
+    muscleGroupText: {
       fontSize: 12,
-      fontFamily: fonts.regular,
-      color: colors.textMuted,
+      fontFamily: fonts.semiBold,
       textTransform: 'capitalize',
     },
     setRow: {
