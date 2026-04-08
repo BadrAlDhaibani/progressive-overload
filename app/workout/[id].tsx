@@ -3,7 +3,6 @@ import {
   StyleSheet,
   Text,
   View,
-  Pressable,
   Alert,
   BackHandler,
   KeyboardAvoidingView,
@@ -17,6 +16,7 @@ import { useColors, type Colors } from '@/constants/colors';
 import { cardShadow } from '@/constants/shadows';
 import { fonts } from '@/constants/typography';
 import AnimatedScreen from '@/components/AnimatedScreen';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import ExerciseCard from '@/components/ExerciseCard';
 
@@ -110,7 +110,7 @@ export default function WorkoutScreen() {
               ))
             )}
 
-            <Pressable
+            <AnimatedPressable
               style={({ pressed }) => [
                 styles.addExerciseButton,
                 pressed && styles.addExerciseButtonPressed,
@@ -118,11 +118,12 @@ export default function WorkoutScreen() {
               onPress={() => router.push('/workout/add-exercise')}
             >
               <Text style={styles.addExerciseText}>+ Add Exercise</Text>
-            </Pressable>
+            </AnimatedPressable>
           </ScrollView>
 
           <View style={styles.bottomBar}>
-            <Pressable
+            <AnimatedPressable
+              containerStyle={{ flex: 1 }}
               onPress={handleDiscard}
               style={({ pressed }) => [
                 styles.discardButton,
@@ -130,8 +131,9 @@ export default function WorkoutScreen() {
               ]}
             >
               <Text style={styles.discardText}>Discard</Text>
-            </Pressable>
-            <Pressable
+            </AnimatedPressable>
+            <AnimatedPressable
+              containerStyle={{ flex: 1 }}
               onPress={handleFinish}
               style={({ pressed }) => [
                 styles.finishButton,
@@ -139,7 +141,7 @@ export default function WorkoutScreen() {
               ]}
             >
               <Text style={styles.finishText}>Finish Workout</Text>
-            </Pressable>
+            </AnimatedPressable>
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
@@ -210,7 +212,6 @@ const createStyles = (colors: Colors) =>
       gap: 12,
     },
     discardButton: {
-      flex: 1,
       paddingVertical: 14,
       alignItems: 'center',
       borderRadius: 12,
@@ -224,7 +225,6 @@ const createStyles = (colors: Colors) =>
       color: colors.error,
     },
     finishButton: {
-      flex: 1,
       backgroundColor: colors.primary,
       borderRadius: 12,
       paddingVertical: 14,

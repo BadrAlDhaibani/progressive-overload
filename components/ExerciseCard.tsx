@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import AnimatedPressable from './AnimatedPressable';
 import { useWorkoutStore, type WorkoutSet } from '@/store/useWorkoutStore';
 import { getLastPerformance } from '@/db/workouts';
 import { formatLastPerformance } from '@/utils/formatLastPerformance';
@@ -61,7 +62,7 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
             {exercise.exerciseName}
           </Text>
         </Pressable>
-        <Pressable
+        <AnimatedPressable
           onPress={() => addSet(exerciseId)}
           hitSlop={8}
           style={({ pressed }) => [
@@ -71,7 +72,7 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
         >
           <Ionicons name="add" size={16} color={colors.primary} />
           <Text style={styles.addSetText}>Add Set</Text>
-        </Pressable>
+        </AnimatedPressable>
       </View>
 
       {/* Last performance placeholder */}

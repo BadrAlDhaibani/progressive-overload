@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo } from 'react';
-import { BackHandler, StyleSheet, Text, View, Pressable, ScrollView } from 'react-native';
+import { BackHandler, StyleSheet, Text, View, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
 import AnimatedScreen from '@/components/AnimatedScreen';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { cardShadow } from '@/constants/shadows';
 import type { MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
@@ -157,7 +158,7 @@ export default function SummaryScreen() {
         </ScrollView>
 
         <View style={styles.bottomBar}>
-          <Pressable
+          <AnimatedPressable
             onPress={goBack}
             style={({ pressed }) => [
               styles.doneButton,
@@ -165,7 +166,7 @@ export default function SummaryScreen() {
             ]}
           >
             <Text style={styles.doneText}>{isFromHistory ? 'Back' : 'Done'}</Text>
-          </Pressable>
+          </AnimatedPressable>
         </View>
       </SafeAreaView>
       </AnimatedScreen>

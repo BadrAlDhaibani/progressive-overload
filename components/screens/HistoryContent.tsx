@@ -1,10 +1,11 @@
 import { useCallback, useMemo, useState } from 'react';
-import { StyleSheet, Text, View, Pressable, SectionList, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, SectionList, RefreshControl } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import AnimatedScreen from '@/components/AnimatedScreen';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { getAllWorkouts, getWorkoutSets } from '@/db/workouts';
 import type { Workout } from '@/db/workouts';
 
@@ -127,7 +128,7 @@ export default function HistoryContent() {
           <Text style={styles.sectionHeader}>{title}</Text>
         )}
         renderItem={({ item }) => (
-          <Pressable
+          <AnimatedPressable
             onPress={() => handleWorkoutPress(item.id)}
             style={({ pressed }) => [
               styles.workoutRow,
@@ -149,7 +150,7 @@ export default function HistoryContent() {
                 {formatDuration(item.started_at, item.finished_at)}
               </Text>
             )}
-          </Pressable>
+          </AnimatedPressable>
         )}
       />
     </View>

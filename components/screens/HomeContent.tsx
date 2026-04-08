@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { useColors, type Colors } from '@/constants/colors';
 import { cardShadow } from '@/constants/shadows';
 import AnimatedScreen from '@/components/AnimatedScreen';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import { fonts } from '@/constants/typography';
 import { createWorkout, getRecentWorkouts, getLastPerformance } from '@/db/workouts';
 import { getWorkoutSets } from '@/db/workouts';
@@ -189,7 +190,7 @@ export default function HomeContent() {
         </Text>
       </View>
 
-      <Pressable
+      <AnimatedPressable
         onPress={handleStartWorkout}
         style={({ pressed }) => [
           styles.startButton,
@@ -197,7 +198,7 @@ export default function HomeContent() {
         ]}
       >
         <Text style={styles.startButtonText}>Start Workout</Text>
-      </Pressable>
+      </AnimatedPressable>
 
       <View style={styles.templatesSection}>
         <Text style={styles.sectionTitle}>Templates</Text>
@@ -218,7 +219,7 @@ export default function HomeContent() {
             <Text style={styles.addTemplateText}>New</Text>
           </Pressable>
           {templates.map((t) => (
-            <Pressable
+            <AnimatedPressable
               key={t.id}
               onPress={() => handleStartFromTemplate(t.id, t.name)}
               onLongPress={() => handleTemplateLongPress(t.id, t.name)}
@@ -231,7 +232,7 @@ export default function HomeContent() {
               <Text style={styles.templateMeta}>
                 {t.exerciseCount} exercise{t.exerciseCount !== 1 ? 's' : ''}
               </Text>
-            </Pressable>
+            </AnimatedPressable>
           ))}
         </ScrollView>
       </View>
@@ -240,7 +241,7 @@ export default function HomeContent() {
         <View style={styles.recentSection}>
           <Text style={styles.sectionTitle}>Recent Workouts</Text>
           {recentWorkouts.map((w) => (
-            <Pressable
+            <AnimatedPressable
               key={w.id}
               onPress={() => handleWorkoutPress(w.id)}
               style={({ pressed }) => [
@@ -263,7 +264,7 @@ export default function HomeContent() {
                   {formatDuration(w.started_at, w.finished_at)}
                 </Text>
               )}
-            </Pressable>
+            </AnimatedPressable>
           ))}
         </View>
       )}
