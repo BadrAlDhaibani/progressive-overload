@@ -27,6 +27,9 @@ const lightColors = {
 
   // Contrast text on primary bg
   textOnPrimary: '#ffffff',
+
+  // Theme flag
+  isDark: false,
 } as const;
 
 export type Colors = typeof lightColors;
@@ -52,6 +55,8 @@ const darkColors: Colors = {
   error: '#ef4444',
 
   textOnPrimary: '#ffffff',
+
+  isDark: true,
 };
 
 export function useColors(): Colors {

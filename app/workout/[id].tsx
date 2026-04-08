@@ -229,7 +229,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 12,
       paddingVertical: 14,
       alignItems: 'center',
-      ...cardShadow,
+      ...cardShadow(colors),
     },
     finishButtonPressed: {
       backgroundColor: colors.primaryDark,

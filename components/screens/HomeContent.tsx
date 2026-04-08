@@ -308,7 +308,7 @@ const createStyles = (colors: Colors) =>
     startButtonShadow: {
       borderRadius: 12,
       marginBottom: 32,
-      ...cardShadow,
+      ...cardShadow(colors),
     },
     startButton: {
       borderRadius: 12,

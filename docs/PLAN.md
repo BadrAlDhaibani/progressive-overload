@@ -432,3 +432,364 @@ P8 depends on P6 (uses AnimatedPressable)
 ## Verification
 
 After each batch: app launches without crashes, the specific feature works as described in "Test" section. After Batch 8, the complete core loop is testable end-to-end (start workout, log sets, finish, see history, see last performance).
+
+---
+---
+
+# Phase 2: Testing & App Store Submission
+
+## Context
+
+All features and polish are complete. The app needs to go from "runs in Expo Go on dev machine" to "published on the iOS App Store." Since the project uses Expo managed workflow, EAS Build handles iOS compilation in the cloud — no Mac required. Apple Developer account ($99/year) is required from S4 onward.
+
+## Progress
+
+| Batch | Status | Description |
+|-------|--------|-------------|
+| S1 | Done | App Identity, Configuration & Dark Mode Shadows |
+| S2 | Pending | App Icon & Splash Screen |
+| S3 | Pending | EAS Build Setup |
+| S4 | Pending | Development Build (Physical Device) |
+| S5 | Pending | TestFlight Beta |
+| S6 | Pending | App Store Preparation |
+| S7 | Pending | Production Build & Submission |
+
+## Dependency Chain
+
+```
+S1 (config) ──┐
+S2 (assets) ──┼──> S3 (EAS setup) ──> S4 (dev build) ──> S5 (TestFlight) ──> S6 (store prep) ──> S7 (submit)
+              │
+              └── S4+ requires Apple Developer Account ($99/year)
+```
+
+S1 and S2 can be done in parallel. S3 requires a free Expo account. S4 onward requires Apple Developer account.
+
+---
+
+## S1: App Identity, Configuration & Dark Mode Shadows
+
+**Goal**: Set bundle identifier, fix app.json metadata, create eas.json, install dev client dependency, and fix shadows for dark mode support.
+
+**Prerequisites**: None.
+
+### Changes
+
+**Theme-aware shadows (`constants/shadows.ts`):**
+- Converted `cardShadow` from static export to function taking `colors` parameter
+- In dark mode returns empty styles (cards rely on bgCard/bg contrast instead)
+- Updated 3 consumer files: `HomeContent.tsx`, `[id].tsx`, `summary.tsx` — `...cardShadow` → `...cardShadow(colors)`
+
+**Modify `app.json`:**
+- Change `"name": "proverload"` → `"name": "Proverload"` (capitalized display name)
+- Keep `"userInterfaceStyle": "automatic"` (app supports both light and dark mode)
+- Add to `expo.ios`: `bundleIdentifier: "com.proverload.app"`, `buildNumber: "1"`, `supportsTablet: false`
+- Add `"expo-dev-client"` to plugins array
+
+**Create `eas.json`** at project root with development/preview/production build profiles and placeholder submit config (filled in during S6).
+
+**Install:** `npx expo install expo-dev-client`
+
+**Decided:** Bundle ID = `com.proverload.app`, iPad support disabled (`supportsTablet: false`), dark mode kept (automatic theme switching).
+
+**Test**: `npx expo start` still works. Toggle device dark mode — app switches themes, shadows hidden in dark mode. All screens render correctly in both themes.
+
+---
+
+## S2: App Icon & Splash Screen
+
+**Goal**: Replace Expo placeholder assets with branded Proverload icon and splash screen.
+
+**Prerequisites**: You need to create or commission icon artwork.
+
+### Icon Specs
+
+| File | Purpose | Size |
+|------|---------|------|
+| `assets/images/icon.png` | iOS app icon source | 1024x1024 px, PNG, no transparency, no rounded corners |
+| `assets/images/adaptive-icon.png` | Android (future) | 1024x1024 px |
+| `assets/images/favicon.png` | Web favicon | 48x48 px |
+| `assets/images/splash-icon.png` | Splash screen logo | 200x200+ px (centered on background) |
+
+Expo auto-generates all required iOS icon sizes from the single 1024x1024 `icon.png`.
+
+### Design Suggestions
+
+Given the brand (rose `#f43f5e`, white, dark text):
+- **Icon**: Solid rose `#f43f5e` background, white barbell/dumbbell silhouette or stylized "P". Keep it simple — must be recognizable at 29x29.
+- **Tools**: Figma (free), icon.kitchen (free web tool), or Canva (has app icon templates)
+
+### Splash Screen Config
+
+**Modify `app.json`** splash section:
+```json
+"splash": {
+  "image": "./assets/images/splash-icon.png",
+  "resizeMode": "contain",
+  "backgroundColor": "#f43f5e"
+}
+```
+Rose background + white logo creates a strong brand moment on launch.
+
+### Asset Replacement
+
+Replace the 4 files listed above with your new designs. Just overwrite the existing files — same filenames.
+
+**Test**: App launches with new splash (rose background, white logo). Icon appears correctly on home screen and in Expo Go app list. No white fringing or transparency artifacts.
+
+---
+
+## S3: EAS Build Setup
+
+**Goal**: Install EAS CLI, log in, verify project is linked to your Expo account.
+
+**Prerequisites**: Free Expo account (create at expo.dev).
+
+### Commands
+
+```bash
+npm install -g eas-cli
+eas login
+eas build:configure
+```
+
+`eas build:configure` validates your `eas.json` and links the project to your Expo account.
+
+### Verify
+
+```bash
+eas whoami          # shows your Expo username
+eas config --platform ios   # shows build profiles + bundle ID
+```
+
+**Test**: All three commands succeed without errors. `eas config` shows development/preview/production profiles.
+
+---
+
+## S4: Development Build (Physical Device)
+
+**Goal**: Create a dev build that runs on a physical iPhone, replacing Expo Go. Confirms all native modules (expo-sqlite, expo-haptics, reanimated) work in a real build.
+
+**Prerequisites**:
+- **Apple Developer account** ($99/year) — sign up at developer.apple.com. Allow 24-48 hours for activation.
+- EAS CLI configured (S3)
+- Physical iPhone available
+
+### Steps
+
+**1. Register your device:**
+```bash
+eas device:create
+```
+Opens a URL — open it on your iPhone to install a provisioning profile.
+
+**2. Build:**
+```bash
+eas build --profile development --platform ios
+```
+Runs in the cloud, ~10-20 minutes. EAS creates signing credentials automatically.
+
+**3. Install & test:**
+- Scan QR code or open download link on iPhone
+- Dev client connects to your local dev server: `npx expo start --dev-client`
+- Test all core flows end-to-end
+
+### Test Checklist
+- [ ] App installs on device
+- [ ] expo-sqlite works (data persists between restarts)
+- [ ] expo-haptics fires on set completion
+- [ ] Reanimated animations run on native thread (smooth, not janky)
+- [ ] Splash screen displays correctly
+- [ ] App icon on home screen is correct
+- [ ] Keyboard behavior works (KeyboardAvoidingView, numeric pad)
+
+---
+
+## S5: TestFlight Beta
+
+**Goal**: Build a production-signed app, upload to TestFlight, test the "real" App Store build.
+
+**Prerequisites**: S4 completed (native modules verified), Apple Developer account active.
+
+### Steps
+
+**1. Build production archive:**
+```bash
+eas build --profile production --platform ios
+```
+
+**2. Upload to TestFlight:**
+```bash
+eas submit --platform ios --latest
+```
+First time: EAS will create the app in App Store Connect if it doesn't exist. Say yes.
+
+**3. TestFlight testing:**
+- Build appears in TestFlight after Apple's processing (5-30 minutes)
+- Install from TestFlight on your iPhone
+- Test as a "real user" — cold launch, all flows, edge cases
+
+### Test Checklist
+- [ ] Build uploads without errors
+- [ ] Build passes TestFlight automated processing (no crashes)
+- [ ] App installs from TestFlight
+- [ ] All features identical to dev build
+- [ ] No entitlement warnings in App Store Connect
+- [ ] Launch time is acceptable (< 2 seconds)
+
+---
+
+## S6: App Store Preparation
+
+**Goal**: Create all required listing assets — privacy policy, screenshots, metadata, App Store Connect configuration.
+
+**Prerequisites**: App exists in App Store Connect (created during S5), TestFlight build tested.
+
+### S6.1: Privacy Policy
+
+Host a simple privacy policy page (Proverload collects zero data):
+
+> **Privacy Policy for Proverload**
+>
+> Proverload is an offline workout tracker. All workout data is stored locally on your device using SQLite and never leaves your device. Proverload does not collect, transmit, or share any personal data. No third-party analytics, advertising, or tracking services are used. Delete all data by uninstalling the app.
+>
+> Contact: [your email]
+
+**Hosting options** (free): GitHub Pages, Notion public page, any static host.
+
+### S6.2: App Store Connect Metadata
+
+| Field | Value |
+|-------|-------|
+| App Name | Proverload |
+| Subtitle | Progressive Overload Tracker |
+| Category | Health & Fitness |
+| Age Rating | 4+ |
+| Price | Free |
+| Copyright | 2026 [Your Name] |
+| Privacy Policy URL | [your hosted URL] |
+
+### S6.3: App Description
+
+```
+Proverload tracks your gym workouts so you always know what to beat next time.
+
+- Log sets, reps, and weight for every exercise
+- See your last performance while you train
+- Workout templates for your favorite routines
+- Full exercise library organized by muscle group
+- Create custom exercises and templates
+- View complete workout history
+
+All data stays on your device. No accounts, no cloud, no subscriptions.
+```
+
+**Keywords** (100 char max):
+`workout,tracker,gym,progressive,overload,strength,training,lifting,weightlifting,fitness,log,sets`
+
+### S6.4: Screenshots
+
+**Required**: 6.7" display (iPhone 15/16 Pro Max). **Recommended**: 6.1" display too.
+
+**Capture 5 screenshots:**
+1. Home screen — Start Workout button + recent sessions
+2. Active workout — sets being logged with "last performance" visible
+3. Exercise library — muscle group filter chips active
+4. Workout history — list of past sessions
+5. Workout summary — post-workout stats
+
+**How**: Screenshot from TestFlight on device, or use Figma/screenshots.pro for device mockup frames.
+
+### S6.5: App Privacy Declaration
+
+In App Store Connect → App Privacy → select **"Data Not Collected"**. This is accurate — Proverload is fully offline.
+
+### S6.6: Update `eas.json` with real credentials
+
+Fill in the submit placeholders:
+- `appleId`: Your Apple ID email
+- `ascAppId`: Found in App Store Connect → App Information → Apple ID (numeric)
+- `appleTeamId`: Found at developer.apple.com → Membership → Team ID
+
+### S6.7: Review Notes (optional)
+
+```
+Proverload is an offline workout tracker. No login required.
+Tap "Start Workout" to begin. Add exercises, log sets, and complete the workout.
+```
+
+**Test**: Privacy policy URL is live. All App Store Connect fields filled (no red warnings). Screenshots uploaded. App Privacy completed.
+
+---
+
+## S7: Production Build & Submission
+
+**Goal**: Submit the final build to Apple for review.
+
+**Prerequisites**: All S6 metadata complete, TestFlight testing passed, privacy policy live.
+
+### Pre-submission checklist
+
+Verify in `app.json`:
+- [ ] `name` is "Proverload"
+- [ ] `version` is "1.0.0"
+- [ ] `ios.bundleIdentifier` is set
+- [ ] `userInterfaceStyle` is "light"
+- [ ] `icon` points to real 1024x1024 icon
+- [ ] `splash` configured with branded assets
+
+### Build & submit
+
+```bash
+eas build --profile production --platform ios
+eas submit --platform ios --latest
+```
+
+### Submit for Review
+
+1. Go to appstoreconnect.apple.com
+2. Select Proverload → your new version
+3. Select the uploaded build
+4. Click **"Submit for Review"**
+
+### Review Timeline
+- First submissions: typically 24-48 hours
+- Common rejection reasons: missing screenshot sizes, broken privacy policy link, crash on launch
+- If rejected: read the reason, fix it, bump `buildNumber`, rebuild, resubmit
+
+**Test**: Build uploads without errors. App Store Connect shows "Ready for Review" → "In Review" → **"Ready for Sale"**.
+
+---
+
+## Quick Command Reference
+
+```bash
+# S1: Install dev client
+npx expo install expo-dev-client
+
+# S3: EAS setup
+npm install -g eas-cli
+eas login
+eas build:configure
+
+# S4: Dev build for device
+eas device:create
+eas build --profile development --platform ios
+
+# S5: TestFlight
+eas build --profile production --platform ios
+eas submit --platform ios --latest
+
+# S7: Production submission (same commands as S5)
+eas build --profile production --platform ios
+eas submit --platform ios --latest
+```
+
+---
+
+## Known Issues to Resolve
+
+1. **`userInterfaceStyle: "automatic"`** — must change to `"light"` (S1)
+2. **Dead dark mode code in `colors.ts`** — harmless but cleanup recommended (S1)
+3. **`supportsTablet`** — will be set to `false` (iPhone only) (S1)
+4. **App name lowercase** — `"proverload"` should be `"Proverload"` (S1)

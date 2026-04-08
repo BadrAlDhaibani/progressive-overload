@@ -277,7 +277,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 12,
       paddingVertical: 16,
       alignItems: 'center',
-      ...cardShadow,
+      ...cardShadow(colors),
     },
     doneButtonPressed: {
       backgroundColor: colors.primaryDark,

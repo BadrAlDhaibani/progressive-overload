@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "proverload",
+    "name": "Proverload",
     "slug": "proverload",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,7 +14,9 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.proverload.app",
+      "buildNumber": "1",
+      "supportsTablet": false
     },
     "android": {
       "adaptiveIcon": {
@@ -31,7 +33,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-dev-client"
     ],
     "experiments": {
       "typedRoutes": true
