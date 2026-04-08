@@ -16,6 +16,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
+import AnimatedScreen from '@/components/AnimatedScreen';
 import { muscleGroups, type MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
 import {
@@ -85,6 +86,7 @@ export default function ExercisesContent() {
 
 
   return (
+    <AnimatedScreen>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -274,6 +276,7 @@ export default function ExercisesContent() {
         </KeyboardAvoidingView>
       </Modal>
     </View>
+    </AnimatedScreen>
   );
 }
 

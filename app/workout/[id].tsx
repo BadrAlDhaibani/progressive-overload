@@ -16,6 +16,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { useColors, type Colors } from '@/constants/colors';
 import { cardShadow } from '@/constants/shadows';
 import { fonts } from '@/constants/typography';
+import AnimatedScreen from '@/components/AnimatedScreen';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import ExerciseCard from '@/components/ExerciseCard';
 
@@ -84,6 +85,7 @@ export default function WorkoutScreen() {
 
   return (
     <SafeAreaProvider>
+      <AnimatedScreen>
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
           style={styles.flex}
@@ -141,6 +143,7 @@ export default function WorkoutScreen() {
           </View>
         </KeyboardAvoidingView>
       </SafeAreaView>
+      </AnimatedScreen>
     </SafeAreaProvider>
   );
 }

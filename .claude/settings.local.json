@@ -10,7 +10,9 @@
       "Bash(xargs grep:*)",
       "Bash(npx tsc:*)",
       "Bash(python3:*)",
-      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(p.dependencies['react-native-gesture-handler'] || 'NOT FOUND'\\)\")"
+      "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(p.dependencies['react-native-gesture-handler'] || 'NOT FOUND'\\)\")",
+      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('expo:', pkg.dependencies.expo\\); console.log\\('reanimated:', pkg.dependencies['react-native-reanimated']\\)\")",
+      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('reanimated:', pkg.dependencies['react-native-reanimated']\\)\")"
     ]
   }
 }

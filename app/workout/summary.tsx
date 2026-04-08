@@ -5,6 +5,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
+import AnimatedScreen from '@/components/AnimatedScreen';
 import { cardShadow } from '@/constants/shadows';
 import type { MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
@@ -102,6 +103,7 @@ export default function SummaryScreen() {
 
   return (
     <SafeAreaProvider>
+      <AnimatedScreen>
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={styles.heading}>{isFromHistory ? 'Workout Summary' : 'Workout Complete'}</Text>
@@ -166,6 +168,7 @@ export default function SummaryScreen() {
           </Pressable>
         </View>
       </SafeAreaView>
+      </AnimatedScreen>
     </SafeAreaProvider>
   );
 }

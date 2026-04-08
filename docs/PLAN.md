@@ -31,7 +31,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | P2 | Done | Apply Inter Across All Components |
 | P3 | Done | Muscle Group Badge Colors |
 | P4 | Done | Card Shadows & Depth |
-| P5 | Not started | Screen Fade-In Animations |
+| P5 | Done | Screen Fade-In Animations |
 | P6 | Not started | Button Press Scale Animation |
 | P7 | Not started | Set Completion Bounce Animation |
 | P8 | Not started | Gradient Start Workout Button (Optional) |

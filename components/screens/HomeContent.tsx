@@ -13,6 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { cardShadow } from '@/constants/shadows';
+import AnimatedScreen from '@/components/AnimatedScreen';
 import { fonts } from '@/constants/typography';
 import { createWorkout, getRecentWorkouts, getLastPerformance } from '@/db/workouts';
 import { getWorkoutSets } from '@/db/workouts';
@@ -168,6 +169,7 @@ export default function HomeContent() {
   );
 
   return (
+    <AnimatedScreen>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
@@ -266,6 +268,7 @@ export default function HomeContent() {
         </View>
       )}
     </ScrollView>
+    </AnimatedScreen>
   );
 }
 

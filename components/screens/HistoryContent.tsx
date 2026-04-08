@@ -4,6 +4,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import AnimatedScreen from '@/components/AnimatedScreen';
 import { getAllWorkouts, getWorkoutSets } from '@/db/workouts';
 import type { Workout } from '@/db/workouts';
 
@@ -107,6 +108,7 @@ export default function HistoryContent() {
   }
 
   return (
+    <AnimatedScreen>
     <View style={styles.container}>
       <SectionList
         sections={sections}
@@ -151,6 +153,7 @@ export default function HistoryContent() {
         )}
       />
     </View>
+    </AnimatedScreen>
   );
 }
 
