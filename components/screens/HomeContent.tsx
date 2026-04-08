@@ -193,6 +193,7 @@ export default function HomeContent() {
 
       <AnimatedPressable
         onPress={handleStartWorkout}
+        containerStyle={styles.startButtonShadow}
         style={styles.startButton}
       >
         <LinearGradient
@@ -304,11 +305,14 @@ const createStyles = (colors: Colors) =>
       fontFamily: fonts.regular,
       color: colors.textSecondary,
     },
-    startButton: {
+    startButtonShadow: {
       borderRadius: 12,
       marginBottom: 32,
-      overflow: 'hidden' as const,
       ...cardShadow,
+    },
+    startButton: {
+      borderRadius: 12,
+      overflow: 'hidden' as const,
     },
     startButtonGradient: {
       paddingVertical: 16,
