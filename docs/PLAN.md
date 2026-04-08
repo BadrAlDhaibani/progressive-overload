@@ -30,7 +30,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | P1 | Done | Inter Font Loading |
 | P2 | Done | Apply Inter Across All Components |
 | P3 | Done | Muscle Group Badge Colors |
-| P4 | Not started | Card Shadows & Depth |
+| P4 | Done | Card Shadows & Depth |
 | P5 | Not started | Screen Fade-In Animations |
 | P6 | Not started | Button Press Scale Animation |
 | P7 | Not started | Set Completion Bounce Animation |

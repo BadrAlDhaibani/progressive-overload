@@ -12,6 +12,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { cardShadow } from '@/constants/shadows';
 import { fonts } from '@/constants/typography';
 import { createWorkout, getRecentWorkouts, getLastPerformance } from '@/db/workouts';
 import { getWorkoutSets } from '@/db/workouts';
@@ -300,6 +301,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 12,
       alignItems: 'center',
       marginBottom: 32,
+      ...cardShadow,
     },
     startButtonPressed: {
       backgroundColor: colors.primaryDark,

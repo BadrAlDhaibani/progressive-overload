@@ -5,6 +5,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
+import { cardShadow } from '@/constants/shadows';
 import type { MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
 import { getWorkoutById, getWorkoutSets } from '@/db/workouts';
@@ -272,6 +273,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 12,
       paddingVertical: 16,
       alignItems: 'center',
+      ...cardShadow,
     },
     doneButtonPressed: {
       backgroundColor: colors.primaryDark,

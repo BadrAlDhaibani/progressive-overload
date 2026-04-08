@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { cardShadow } from '@/constants/shadows';
 import { fonts } from '@/constants/typography';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import ExerciseCard from '@/components/ExerciseCard';
@@ -225,6 +226,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: 12,
       paddingVertical: 14,
       alignItems: 'center',
+      ...cardShadow,
     },
     finishButtonPressed: {
       backgroundColor: colors.primaryDark,
