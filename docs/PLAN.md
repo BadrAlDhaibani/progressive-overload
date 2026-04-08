@@ -33,7 +33,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | P4 | Done | Card Shadows & Depth |
 | P5 | Done | Screen Fade-In Animations |
 | P6 | Done | Button Press Scale Animation |
-| P7 | Not started | Set Completion Bounce Animation |
+| P7 | Done | Set Completion Bounce Animation |
 | P8 | Not started | Gradient Start Workout Button (Optional) |
 
 ---
@@ -387,16 +387,16 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 
 ## Batch P7: Set Completion Bounce Animation
 
-**Goal**: Satisfying pulse animation when completing a set.
+**Goal**: Checkmark pop animation on set completion + lock inputs when complete.
 
 **Modify:**
-- `components/SetRow.tsx` — Reanimated scale animation on completion:
-  - Track previous `isComplete` with `useRef`
-  - On `false → true`: `withSequence(withTiming(1.03, 100ms), withTiming(1.0, 150ms))` on row
-  - Checkmark icon: brief `1.0 → 1.2 → 1.0` pop
-  - Wrap row in `Animated.View` with `useAnimatedStyle`
+- `components/SetRow.tsx`:
+  - Reanimated checkmark pop on completion (`false → true`): `1.0 → 1.3 → 1.0` scale via `withSequence`/`withTiming`
+  - Track previous `isComplete` with `useRef` to avoid animating on mount
+  - Added `editable={!isComplete}` on weight/reps TextInputs — completed sets are locked, uncompleting re-enables editing
+  - Row pulse animation was removed (user preference)
 
-**Test:** Complete a set — row briefly pulses, checkmark pops. Uncomplete doesn't animate. Rapid completions don't lag. Swipeable still works.
+**Test:** Complete a set — checkmark pops, inputs become non-editable. Uncomplete — inputs editable again, no animation. Rapid completions don't lag. Swipeable still works.
 
 ---
 

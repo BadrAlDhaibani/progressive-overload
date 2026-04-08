@@ -1,6 +1,12 @@
-import { memo, useState, useCallback, useMemo, useRef } from 'react';
+import { memo, useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { StyleSheet, Text, TextInput, View, Pressable, Animated } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
+import ReAnimated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 
@@ -65,6 +71,23 @@ function SetRow({
     onCompleteSet(localId);
   }, [localId, weightText, repsText, weight, reps, onUpdateSet, onCompleteSet]);
 
+  const checkScale = useSharedValue(1);
+  const prevComplete = useRef(isComplete);
+
+  useEffect(() => {
+    if (isComplete && !prevComplete.current) {
+      checkScale.value = withSequence(
+        withTiming(1.3, { duration: 100 }),
+        withTiming(1.0, { duration: 150 })
+      );
+    }
+    prevComplete.current = isComplete;
+  }, [isComplete, checkScale]);
+
+  const checkAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
+  }));
+
   const swipeableRef = useRef<Swipeable>(null);
 
   const handleRemove = useCallback(() => {
@@ -108,6 +131,7 @@ function SetRow({
             value={weightText}
             onChangeText={setWeightText}
             onEndEditing={handleWeightEnd}
+            editable={!isComplete}
             keyboardType="numeric"
             selectTextOnFocus
             placeholder="—"
@@ -121,6 +145,7 @@ function SetRow({
             value={repsText}
             onChangeText={setRepsText}
             onEndEditing={handleRepsEnd}
+            editable={!isComplete}
             keyboardType="numeric"
             selectTextOnFocus
             placeholder="—"
@@ -133,11 +158,13 @@ function SetRow({
           hitSlop={8}
           style={styles.checkCol}
         >
-          <Ionicons
-            name={isComplete ? 'checkmark-circle' : 'ellipse-outline'}
-            size={28}
-            color={isComplete ? colors.primary : colors.border}
-          />
+          <ReAnimated.View style={checkAnimStyle}>
+            <Ionicons
+              name={isComplete ? 'checkmark-circle' : 'ellipse-outline'}
+              size={28}
+              color={isComplete ? colors.primary : colors.border}
+            />
+          </ReAnimated.View>
         </Pressable>
       </View>
     </Swipeable>
