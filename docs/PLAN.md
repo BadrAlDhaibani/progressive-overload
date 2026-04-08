@@ -34,7 +34,7 @@ The plan follows the iterative batch workflow from `CLAUDE.md`: one testable uni
 | P5 | Done | Screen Fade-In Animations |
 | P6 | Done | Button Press Scale Animation |
 | P7 | Done | Set Completion Bounce Animation |
-| P8 | Not started | Gradient Start Workout Button (Optional) |
+| P8 | Done | Gradient Start Workout Button |
 
 ---
 

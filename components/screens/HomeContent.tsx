@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
@@ -192,12 +193,16 @@ export default function HomeContent() {
 
       <AnimatedPressable
         onPress={handleStartWorkout}
-        style={({ pressed }) => [
-          styles.startButton,
-          pressed && styles.startButtonPressed,
-        ]}
+        style={styles.startButton}
       >
-        <Text style={styles.startButtonText}>Start Workout</Text>
+        <LinearGradient
+          colors={[colors.primaryMedium, colors.primary]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.startButtonGradient}
+        >
+          <Text style={styles.startButtonText}>Start Workout</Text>
+        </LinearGradient>
       </AnimatedPressable>
 
       <View style={styles.templatesSection}>
@@ -300,15 +305,14 @@ const createStyles = (colors: Colors) =>
       color: colors.textSecondary,
     },
     startButton: {
-      backgroundColor: colors.primary,
-      paddingVertical: 16,
       borderRadius: 12,
-      alignItems: 'center',
       marginBottom: 32,
+      overflow: 'hidden' as const,
       ...cardShadow,
     },
-    startButtonPressed: {
-      backgroundColor: colors.primaryDark,
+    startButtonGradient: {
+      paddingVertical: 16,
+      alignItems: 'center' as const,
     },
     startButtonText: {
       color: colors.textOnPrimary,
