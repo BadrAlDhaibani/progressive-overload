@@ -12,7 +12,14 @@
       "Bash(python3:*)",
       "Bash(node -e \"const p = require\\('./package.json'\\); console.log\\(p.dependencies['react-native-gesture-handler'] || 'NOT FOUND'\\)\")",
       "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('expo:', pkg.dependencies.expo\\); console.log\\('reanimated:', pkg.dependencies['react-native-reanimated']\\)\")",
-      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('reanimated:', pkg.dependencies['react-native-reanimated']\\)\")"
+      "Bash(node -e \"const pkg = require\\('./package.json'\\); console.log\\('reanimated:', pkg.dependencies['react-native-reanimated']\\)\")",
+      "Bash(eas whoami:*)",
+      "Bash(eas build:configure --platform ios)",
+      "Bash(identify \"D:\\\\Progressive Overload app\\\\progressive-overload\\\\assets\\\\images\\\\icon.png\" \"D:\\\\Progressive Overload app\\\\progressive-overload\\\\assets\\\\images\\\\splash-icon.png\")",
+      "Bash(npm install:*)",
+      "Bash(node scripts/generate-icons.js)",
+      "Bash(rm -rf scripts)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }

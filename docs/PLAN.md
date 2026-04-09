@@ -447,9 +447,9 @@ All features and polish are complete. The app needs to go from "runs in Expo Go 
 | Batch | Status | Description |
 |-------|--------|-------------|
 | S1 | Done | App Identity, Configuration & Dark Mode Shadows |
-| S2 | Pending | App Icon & Splash Screen |
-| S3 | Pending | EAS Build Setup |
-| S4 | Pending | Development Build (Physical Device) |
+| S2 | Done | App Icon & Splash Screen |
+| S3 | Done | EAS Build Setup |
+| S4 | Done | Development Build (Physical Device) |
 | S5 | Pending | TestFlight Beta |
 | S6 | Pending | App Store Preparation |
 | S7 | Pending | Production Build & Submission |
@@ -534,6 +534,8 @@ Rose background + white logo creates a strong brand moment on launch.
 ### Asset Replacement
 
 Replace the 4 files listed above with your new designs. Just overwrite the existing files — same filenames.
+
+**What was done:** Splash `backgroundColor` set to `#f43f5e` in app.json. All 4 placeholder assets replaced with programmatically generated white barbell on rose background (icon, adaptive-icon, favicon) and white barbell on transparent (splash-icon). Generated via temporary Node.js script using `sharp` (script + dependency removed after generation).
 
 **Test**: App launches with new splash (rose background, white logo). Icon appears correctly on home screen and in Expo Go app list. No white fringing or transparency artifacts.
 
