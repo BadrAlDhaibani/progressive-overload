@@ -450,7 +450,7 @@ All features and polish are complete. The app needs to go from "runs in Expo Go 
 | S2 | Done | App Icon & Splash Screen |
 | S3 | Done | EAS Build Setup |
 | S4 | Done | Development Build (Physical Device) |
-| S5 | Pending | TestFlight Beta |
+| S5 | Done | TestFlight Beta |
 | S6 | Pending | App Store Preparation |
 | S7 | Pending | Production Build & Submission |
 
