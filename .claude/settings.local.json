@@ -20,7 +20,8 @@
       "Bash(node scripts/generate-icons.js)",
       "Bash(rm -rf scripts)",
       "Bash(npm uninstall:*)",
-      "Bash(xargs -0 grep -l \"proverload\\\\|Proverload\\\\|ProverLoad\\\\|progressive-overload\\\\|Progressive Overload\")"
+      "Bash(xargs -0 grep -l \"proverload\\\\|Proverload\\\\|ProverLoad\\\\|progressive-overload\\\\|Progressive Overload\")",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
     ]
   }
 }

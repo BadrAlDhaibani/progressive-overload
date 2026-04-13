@@ -10,7 +10,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { cardShadow } from '@/constants/shadows';
@@ -28,6 +29,7 @@ function formatElapsed(seconds: number): string {
 
 export default function WorkoutScreen() {
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const workoutId = useWorkoutStore((s) => s.workoutId);
@@ -95,8 +97,6 @@ export default function WorkoutScreen() {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-            <Text style={styles.timerText}>{formatElapsed(elapsed)}</Text>
-
             {exerciseIds.length === 0 ? (
               <View style={styles.emptyContainer}>
                 <Text style={styles.emptyTitle}>No exercises yet</Text>
@@ -144,6 +144,16 @@ export default function WorkoutScreen() {
             </AnimatedPressable>
           </View>
         </KeyboardAvoidingView>
+
+        <View style={[styles.floatingTimer, { paddingTop: insets.top }]} pointerEvents="none">
+          <BlurView
+            intensity={80}
+            tint={colors.isDark ? 'dark' : 'light'}
+            style={styles.blurContainer}
+          >
+            <Text style={styles.timerText}>{formatElapsed(elapsed)}</Text>
+          </BlurView>
+        </View>
       </SafeAreaView>
       </AnimatedScreen>
     </SafeAreaProvider>
@@ -162,13 +172,26 @@ const createStyles = (colors: Colors) =>
     scrollContent: {
       flexGrow: 1,
       padding: 16,
+      paddingTop: 72,
+    },
+    floatingTimer: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 10,
+    },
+    blurContainer: {
+      paddingVertical: 12,
+      alignItems: 'center',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
     timerText: {
       fontSize: 28,
       fontFamily: fonts.bold,
       color: colors.text,
       textAlign: 'center',
-      marginBottom: 24,
     },
     emptyContainer: {
       flex: 1,

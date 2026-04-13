@@ -436,6 +436,217 @@ After each batch: app launches without crashes, the specific feature works as de
 ---
 ---
 
+# Phase 1.5: Post-Testing Feature Additions
+
+## Context
+
+After TestFlight testing (S5), user and tester feedback identified 7 quality-of-life improvements to implement before App Store submission. These range from small UX tweaks to a new exercise history screen. Organized into 6 batches following the same iterative workflow.
+
+## Progress
+
+| Batch | Status | Description |
+|-------|--------|-------------|
+| F1 | Done | Floating Blurred Elapsed Timer |
+| F2 | Pending | Long-Press Pulse on Exercise Cards |
+| F3 | Pending | Custom Exercise Creation Mid-Workout |
+| F4 | Pending | Assisted Weight Input |
+| F5 | Pending | Workout UX: Full Swipe Delete + Smart Finish Warning |
+| F6 | Pending | Exercise History & Progression Screen |
+
+## Dependency Chain
+
+```
+F1, F2, F5 — independent (any order)
+F3 → F4 (assisted toggle added to both creation flows)
+F6 — independent but largest, do last
+```
+
+---
+
+## F1: Floating Blurred Elapsed Timer
+
+**Goal**: Persistent floating timer visible while scrolling through exercises during a workout.
+
+**Install:** `npx expo install expo-blur`
+
+**Modify:**
+- `app/workout/[id].tsx`:
+  - Extract the timer display from the header into a floating `BlurView` overlay
+  - Position with `position: 'absolute'`, pinned near the top of the screen (below safe area)
+  - Use `expo-blur` `BlurView` with `intensity={80}` and `tint` matching theme for frosted glass effect
+  - Reuse existing `formatElapsed()` helper and `elapsed` state (driven by `startedAt` from store)
+  - `pointerEvents="none"` on the blur container so it doesn't block scroll/touch
+  - Ensure the ScrollView has enough top padding so content isn't hidden behind the timer
+  - Remove the old static timer from the scrollable header area
+
+**Test**: Start a workout, add several exercises with multiple sets. Scroll down — timer stays visible floating at top with blur backdrop. Timer continues counting. Taps on inputs below the timer still work.
+
+---
+
+## F2: Long-Press Pulse on Exercise Cards
+
+**Goal**: Visual feedback when holding an exercise card before the remove alert fires.
+
+**Modify:**
+- `components/ExerciseCard.tsx`:
+  - Convert the exercise name `Pressable` to use Reanimated animated styles
+  - On `onPressIn`: start a `withTiming` scale animation from `1.0 → 1.02` over 400ms (matching `delayLongPress`)
+  - On `onPressOut`: animate back to `1.0` over 150ms
+  - Apply the animated scale to the entire card container (not just the name area) so the whole card subtly pulses
+  - Use `useSharedValue` + `useAnimatedStyle` pattern (already used in SetRow for checkmark animation)
+
+**Test**: Long-press an exercise card — card subtly grows during the hold. Release before 400ms — card springs back, no alert. Hold past 400ms — alert fires, card resets on release.
+
+---
+
+## F3: Custom Exercise Creation Mid-Workout
+
+**Goal**: Add custom exercises without leaving the active workout.
+
+**Modify:**
+- `app/workout/add-exercise.tsx`:
+  - Add a "+" button in the header area (same placement pattern as `ExercisesContent.tsx`)
+  - Add the custom exercise creation modal (same fields: name, muscle group chips, equipment chips)
+  - Reuse the same validation logic: trim whitespace, prevent empty names
+  - On successful creation via `insertCustomExercise()`, refresh the exercise list so the new exercise appears immediately
+  - The new exercise can then be tapped to add it to the workout like any other exercise
+
+**Shared logic to extract (optional):**
+- The modal UI (name input, muscle group chips, equipment chips, Add/Cancel buttons) is identical between `ExercisesContent.tsx` and the new mid-workout modal. Consider extracting to a `components/AddExerciseModal.tsx` shared component to avoid duplication. Both screens would pass an `onAdd` callback and `visible`/`onClose` props.
+
+**Test**: During a workout, tap "Add Exercise" → exercise picker opens. Tap "+" → custom exercise modal appears. Create exercise (e.g., "Band Pull-Apart", Back, Bodyweight). Modal closes, new exercise appears in the list. Tap it to add to workout. Exercise also appears in the Exercises tab after workout.
+
+---
+
+## F4: Assisted Weight Input
+
+**Goal**: Support "assisted lbs" for exercises like pull-ups and dips where a machine offsets bodyweight.
+
+### Schema Migration
+**Modify `db/database.ts`:**
+- Bump `user_version` from current value to next
+- Add migration: `ALTER TABLE exercises ADD COLUMN is_assisted INTEGER DEFAULT 0`
+- Existing exercises unaffected (default 0)
+
+**Modify `db/exercises.ts`:**
+- Update `Exercise` interface to include `is_assisted: number`
+- Update `insertCustomExercise()` signature to accept optional `isAssisted` boolean parameter
+
+### Exercise Creation UI
+**Modify `components/AddExerciseModal.tsx`** (or both `ExercisesContent.tsx` and `add-exercise.tsx` if not extracted in F3):
+- Add an "Assisted" toggle switch below the equipment chips
+- Label: "Assisted (e.g., pull-up machine)" — explains the purpose
+- When toggled on, sets `is_assisted = 1` on insert
+- Default off
+
+### Workout UI
+**Modify `store/useWorkoutStore.ts`:**
+- `WorkoutExercise` interface: add `isAssisted: boolean` field
+- When adding an exercise, look up `is_assisted` from the DB and store it
+
+**Modify `components/SetRow.tsx`:**
+- Accept new prop `isAssisted: boolean`
+- When `isAssisted` is true, change the weight input label from "lbs" to "Assisted lbs" (or show a small "A" badge/indicator)
+- The numeric input works the same way — just the label/context changes so the user knows they're logging assisted weight
+
+**Modify `components/ExerciseCard.tsx`:**
+- Pass `isAssisted` from the exercise data down to each `SetRow`
+
+### Display
+**Modify `app/workout/summary.tsx`:**
+- When displaying sets for an assisted exercise, show "A 50 lbs × 8" or "50 lbs (assisted) × 8" instead of just "50 lbs × 8"
+
+**Test**: Create a custom exercise with "Assisted" toggled on. Start a workout, add it, log sets with assisted weight. Complete workout — summary shows assisted indicator. Existing exercises unchanged.
+
+---
+
+## F5: Workout UX Improvements
+
+**Goal**: Two small quality-of-life fixes for the active workout flow.
+
+### Full Swipe to Delete Sets
+**Modify `components/SetRow.tsx`:**
+- Add `onSwipeableOpen` callback to the `Swipeable` component (fires when fully swiped open)
+- When the right action is fully opened, auto-trigger deletion: call `onRemoveSet(localId)` with haptic feedback
+- Set `overshootRight={true}` to allow the full swipe motion
+- Keep the existing partial swipe → reveal delete button behavior for users who prefer that
+- The `rightThreshold` can stay at 40 for the partial reveal; `onSwipeableOpen` handles the full swipe case
+
+### Smart Finish Warning
+**Modify `app/workout/[id].tsx`:**
+- In `handleFinish()`, check if all sets in the store have `isComplete === true`
+- If all complete (or no sets exist): skip the Alert, finish immediately
+- If any incomplete: show the existing warning ("Incomplete sets will not be saved.")
+- Access sets via `useWorkoutStore.getState().sets` and check `.isComplete` on each
+
+**Test**:
+1. Full swipe: Swipe a set row all the way left — set deletes automatically with haptic. Partial swipe still reveals delete button.
+2. Smart finish: Complete all sets → tap Finish → goes straight to summary (no alert). Leave one set incomplete → tap Finish → warning appears as before.
+
+---
+
+## F6: Exercise History & Progression Screen
+
+**Goal**: Tap an exercise in the Exercises tab to view its full performance history with progression indicators.
+
+### New DB Query
+**Modify `db/workouts.ts`:**
+- Add `getExerciseHistory(exerciseId: number)` — returns all sets for this exercise across all finished workouts, joined with workout date:
+  ```sql
+  SELECT w.id as workout_id, w.started_at, s.set_order, s.weight, s.reps
+  FROM sets s
+  JOIN workouts w ON s.workout_id = w.id
+  WHERE s.exercise_id = ? AND w.finished_at IS NOT NULL
+  ORDER BY w.started_at DESC, s.set_order ASC
+  ```
+- Returns `ExerciseHistoryEntry[]` grouped by workout session
+
+### New Screen
+**Create `app/exercise/[id].tsx`:**
+- Full-screen modal (or pushed screen) showing exercise history
+- **Header**: Exercise name, muscle group badge, equipment tag
+- **Stats summary**: Total sessions performed, estimated 1RM or best set (heaviest weight × reps), total volume all-time
+- **History list**: `SectionList` grouped by workout date (most recent first)
+  - Section header: date + total volume for that session
+  - Rows: each set — "Set 1: 135 lbs × 10" format
+  - **Progression indicator** per session: compare session's best set (max weight, or max volume = weight × reps) to the previous session
+    - Green up arrow: improved (higher volume or weight)
+    - Red down arrow: regressed
+    - Gray dash: same
+- Empty state: "No history yet — complete a workout with this exercise to see your progress."
+
+### Navigation
+**Modify `components/screens/ExercisesContent.tsx`:**
+- Add `onPress` to `ExerciseListItem` that navigates to `/exercise/${exercise.id}`
+
+**Modify `app/_layout.tsx`:**
+- Register `exercise/[id]` route (presentation: `'modal'` or default push)
+
+### Colors
+**Modify `constants/colors.ts`:**
+- Add `progressUp: '#22c55e'` (green — reuse existing `success` token)
+- Add `progressDown: '#ef4444'` (red — reuse existing `error` token)
+- Add `progressFlat: '#9ca3af'` (gray)
+
+**Test**: Go to Exercises tab, tap any exercise. History screen opens showing all past performances grouped by date. Sessions with improvement show green arrow, regressions show red. Tap back to return to exercises list. Exercise with no history shows empty state.
+
+---
+
+## Dependency Order
+
+```
+F1 (floating timer) ──┐
+F2 (press pulse)   ──┤
+F5 (swipe + warn)  ──┼──> F3 (custom mid-workout) ──> F4 (assisted input) ──> F6 (history screen)
+                      │
+                      └── All independent except F3→F4 chain
+```
+
+After F6, resume Phase 2 at S6 (App Store Preparation).
+
+---
+---
+
 # Phase 2: Testing & App Store Submission
 
 ## Context
