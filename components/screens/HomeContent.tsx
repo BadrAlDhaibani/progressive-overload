@@ -185,7 +185,7 @@ export default function HomeContent() {
       }
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Proverload</Text>
+        <Text style={styles.title}>Provolone</Text>
         <Text style={styles.subtitle}>
           Track your progress. Beat your last set.
         </Text>

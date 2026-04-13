@@ -19,7 +19,8 @@
       "Bash(npm install:*)",
       "Bash(node scripts/generate-icons.js)",
       "Bash(rm -rf scripts)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(xargs -0 grep -l \"proverload\\\\|Proverload\\\\|ProverLoad\\\\|progressive-overload\\\\|Progressive Overload\")"
     ]
   }
 }

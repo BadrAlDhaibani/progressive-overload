@@ -1,8 +1,8 @@
-# Proverload — MVP Scope
+# Provolone — MVP Scope
 
 ## Overview
 
-**Proverload** (progressive + overload) is a dead-simple mobile app for tracking gym workouts. At its core, the app does one thing well: **log sets, reps, and weight** so you always know what to beat next session. Everything else is secondary and built on top of that foundation.
+**Provolone** is a dead-simple mobile app for tracking gym workouts. At its core, the app does one thing well: **log sets, reps, and weight** so you always know what to beat next session. Everything else is secondary and built on top of that foundation.
 
 **Target user:** Personal use (single user, no auth)
 **Platform:** iOS & Android via React Native + Expo
@@ -145,7 +145,7 @@ CREATE INDEX idx_workouts_started ON workouts(started_at);
   - Accent shades: light (#ffe4e6), medium (#fb7185), dark (#e11d48)
   - Text: #111827 (primary), #6b7280 (secondary)
 - Typography: Bold numbers for weight/reps, clean sans-serif (Inter or System)
-- **Branding:** "Proverload" — own identity, no Klero association
+- **Branding:** "Provolone" — own identity, no Klero association
 - Large touch targets (minimum 48px), generous padding
 - Haptic feedback on set completion
 - No unnecessary animations — speed of logging is everything

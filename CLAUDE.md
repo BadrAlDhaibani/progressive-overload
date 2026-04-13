@@ -1,4 +1,4 @@
-# Proverload
+# Provolone
 
 Gym workout tracker focused on progressive overload. Single-user, offline-only, simplicity above all. The app does one thing: **log sets, reps, and weight** so you know what to beat next time.
 

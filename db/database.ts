@@ -1,7 +1,7 @@
 import { openDatabaseSync } from 'expo-sqlite';
 import { seedDatabase } from './seed';
 
-export const db = openDatabaseSync('proverload.db');
+export const db = openDatabaseSync('provolone.db');
 
 export function initDatabase(): void {
   db.execSync('PRAGMA foreign_keys = ON');

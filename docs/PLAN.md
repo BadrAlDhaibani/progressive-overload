@@ -1,4 +1,4 @@
-# Proverload Implementation Plan
+# Provolone Implementation Plan
 
 ## Context
 
@@ -481,16 +481,16 @@ S1 and S2 can be done in parallel. S3 requires a free Expo account. S4 onward re
 - Updated 3 consumer files: `HomeContent.tsx`, `[id].tsx`, `summary.tsx` — `...cardShadow` → `...cardShadow(colors)`
 
 **Modify `app.json`:**
-- Change `"name": "proverload"` → `"name": "Proverload"` (capitalized display name)
+- Change `"name": "proverload"` → `"name": "Provolone"` (capitalized display name)
 - Keep `"userInterfaceStyle": "automatic"` (app supports both light and dark mode)
-- Add to `expo.ios`: `bundleIdentifier: "com.proverload.app"`, `buildNumber: "1"`, `supportsTablet: false`
+- Add to `expo.ios`: `bundleIdentifier: "app.provolone"`, `buildNumber: "1"`, `supportsTablet: false`
 - Add `"expo-dev-client"` to plugins array
 
 **Create `eas.json`** at project root with development/preview/production build profiles and placeholder submit config (filled in during S6).
 
 **Install:** `npx expo install expo-dev-client`
 
-**Decided:** Bundle ID = `com.proverload.app`, iPad support disabled (`supportsTablet: false`), dark mode kept (automatic theme switching).
+**Decided:** Bundle ID = `app.provolone`, iPad support disabled (`supportsTablet: false`), dark mode kept (automatic theme switching).
 
 **Test**: `npx expo start` still works. Toggle device dark mode — app switches themes, shadows hidden in dark mode. All screens render correctly in both themes.
 
@@ -498,7 +498,7 @@ S1 and S2 can be done in parallel. S3 requires a free Expo account. S4 onward re
 
 ## S2: App Icon & Splash Screen
 
-**Goal**: Replace Expo placeholder assets with branded Proverload icon and splash screen.
+**Goal**: Replace Expo placeholder assets with branded Provolone icon and splash screen.
 
 **Prerequisites**: You need to create or commission icon artwork.
 
@@ -649,11 +649,11 @@ First time: EAS will create the app in App Store Connect if it doesn't exist. Sa
 
 ### S6.1: Privacy Policy
 
-Host a simple privacy policy page (Proverload collects zero data):
+Host a simple privacy policy page (Provolone collects zero data):
 
-> **Privacy Policy for Proverload**
+> **Privacy Policy for Provolone**
 >
-> Proverload is an offline workout tracker. All workout data is stored locally on your device using SQLite and never leaves your device. Proverload does not collect, transmit, or share any personal data. No third-party analytics, advertising, or tracking services are used. Delete all data by uninstalling the app.
+> Provolone is an offline workout tracker. All workout data is stored locally on your device using SQLite and never leaves your device. Provolone does not collect, transmit, or share any personal data. No third-party analytics, advertising, or tracking services are used. Delete all data by uninstalling the app.
 >
 > Contact: [your email]
 
@@ -663,7 +663,7 @@ Host a simple privacy policy page (Proverload collects zero data):
 
 | Field | Value |
 |-------|-------|
-| App Name | Proverload |
+| App Name | Provolone |
 | Subtitle | Progressive Overload Tracker |
 | Category | Health & Fitness |
 | Age Rating | 4+ |
@@ -674,7 +674,7 @@ Host a simple privacy policy page (Proverload collects zero data):
 ### S6.3: App Description
 
 ```
-Proverload tracks your gym workouts so you always know what to beat next time.
+Provolone tracks your gym workouts so you always know what to beat next time.
 
 - Log sets, reps, and weight for every exercise
 - See your last performance while you train
@@ -704,7 +704,7 @@ All data stays on your device. No accounts, no cloud, no subscriptions.
 
 ### S6.5: App Privacy Declaration
 
-In App Store Connect → App Privacy → select **"Data Not Collected"**. This is accurate — Proverload is fully offline.
+In App Store Connect → App Privacy → select **"Data Not Collected"**. This is accurate — Provolone is fully offline.
 
 ### S6.6: Update `eas.json` with real credentials
 
@@ -716,7 +716,7 @@ Fill in the submit placeholders:
 ### S6.7: Review Notes (optional)
 
 ```
-Proverload is an offline workout tracker. No login required.
+Provolone is an offline workout tracker. No login required.
 Tap "Start Workout" to begin. Add exercises, log sets, and complete the workout.
 ```
 
@@ -733,7 +733,7 @@ Tap "Start Workout" to begin. Add exercises, log sets, and complete the workout.
 ### Pre-submission checklist
 
 Verify in `app.json`:
-- [ ] `name` is "Proverload"
+- [ ] `name` is "Provolone"
 - [ ] `version` is "1.0.0"
 - [ ] `ios.bundleIdentifier` is set
 - [ ] `userInterfaceStyle` is "light"
@@ -750,7 +750,7 @@ eas submit --platform ios --latest
 ### Submit for Review
 
 1. Go to appstoreconnect.apple.com
-2. Select Proverload → your new version
+2. Select Provolone → your new version
 3. Select the uploaded build
 4. Click **"Submit for Review"**
 
@@ -794,4 +794,4 @@ eas submit --platform ios --latest
 1. **`userInterfaceStyle: "automatic"`** — must change to `"light"` (S1)
 2. **Dead dark mode code in `colors.ts`** — harmless but cleanup recommended (S1)
 3. **`supportsTablet`** — will be set to `false` (iPhone only) (S1)
-4. **App name lowercase** — `"proverload"` should be `"Proverload"` (S1)
+4. **App name lowercase** — `"proverload"` should be `"Provolone"` (S1)
