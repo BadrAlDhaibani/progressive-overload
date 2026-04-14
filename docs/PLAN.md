@@ -447,7 +447,7 @@ After TestFlight testing (S5), user and tester feedback identified 7 quality-of-
 | Batch | Status | Description |
 |-------|--------|-------------|
 | F1 | Done | Floating Blurred Elapsed Timer |
-| F2 | Pending | Long-Press Pulse on Exercise Cards |
+| F2 | Done | Long-Press Pulse on Exercise Cards |
 | F3 | Pending | Custom Exercise Creation Mid-Workout |
 | F4 | Pending | Assisted Weight Input |
 | F5 | Pending | Workout UX: Full Swipe Delete + Smart Finish Warning |

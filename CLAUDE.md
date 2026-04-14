@@ -58,6 +58,7 @@ constants/
 - `SetRow` is the most-used component. Optimize for fast input: numeric keypad, large targets (56×56px complete button), pre-fill with previous set values.
 - Don't use `TextInput` `onChangeText` for weight/reps — use `onEndEditing` or `onSubmitEditing` to avoid re-renders on every character.
 - Use `expo-haptics` (`Haptics.impactAsync(ImpactFeedbackStyle.Light)`) on set completion tap. Import only where used.
+- **Press animations:** Always use `AnimatedPressable` (`components/AnimatedPressable.tsx`) for any pressable element that needs scale feedback. Never hand-roll Reanimated scale logic in individual components. The defaults (scale 0.97, 100ms press-in) are the app standard — only override via props if a specific element genuinely needs different values.
 
 ### Navigation
 - The active workout screen (`workout/[id]`) should be presented as a full-screen modal via Expo Router's `presentation: 'modal'` option. The user should not accidentally navigate away mid-workout.

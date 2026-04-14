@@ -14,12 +14,16 @@ import Animated, {
 
 interface AnimatedPressableProps extends PressableProps {
   containerStyle?: StyleProp<ViewStyle>;
+  scaleValue?: number;
+  pressDuration?: number;
 }
 
 export default function AnimatedPressable({
   onPressIn,
   onPressOut,
   containerStyle,
+  scaleValue = 0.97,
+  pressDuration = 100,
   ...props
 }: AnimatedPressableProps) {
   const scale = useSharedValue(1);
@@ -30,10 +34,10 @@ export default function AnimatedPressable({
 
   const handlePressIn = useCallback(
     (e: GestureResponderEvent) => {
-      scale.value = withTiming(0.97, { duration: 100 });
+      scale.value = withTiming(scaleValue, { duration: pressDuration });
       onPressIn?.(e);
     },
-    [onPressIn, scale]
+    [onPressIn, scale, scaleValue, pressDuration]
   );
 
   const handlePressOut = useCallback(

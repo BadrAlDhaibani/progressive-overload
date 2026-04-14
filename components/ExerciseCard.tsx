@@ -1,5 +1,5 @@
 import { memo, useMemo, useCallback } from 'react';
-import { StyleSheet, Text, View, Pressable, Alert } from 'react-native';
+import { StyleSheet, Text, View, Alert } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -54,14 +54,18 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
   if (!exercise) return null;
 
   return (
-    <View style={styles.card}>
+    <AnimatedPressable
+      onLongPress={handleLongPress}
+      delayLongPress={400}
+      containerStyle={styles.card}
+    >
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onLongPress={handleLongPress} delayLongPress={400} style={styles.exerciseNameWrap}>
+        <View style={styles.exerciseNameWrap}>
           <Text style={styles.exerciseName} numberOfLines={1}>
             {exercise.exerciseName}
           </Text>
-        </Pressable>
+        </View>
         <AnimatedPressable
           onPress={() => addSet(exerciseId)}
           hitSlop={8}
@@ -103,7 +107,7 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
           onRemoveSet={removeSet}
         />
       ))}
-    </View>
+    </AnimatedPressable>
   );
 }
 
