@@ -21,7 +21,8 @@
       "Bash(rm -rf scripts)",
       "Bash(npm uninstall:*)",
       "Bash(xargs -0 grep -l \"proverload\\\\|Proverload\\\\|ProverLoad\\\\|progressive-overload\\\\|Progressive Overload\")",
-      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")"
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(find D:\\\\Progressive Overload app\\\\progressive-overload *)"
     ]
   }
 }

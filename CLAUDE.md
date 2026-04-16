@@ -59,6 +59,7 @@ constants/
 - Don't use `TextInput` `onChangeText` for weight/reps — use `onEndEditing` or `onSubmitEditing` to avoid re-renders on every character.
 - Use `expo-haptics` (`Haptics.impactAsync(ImpactFeedbackStyle.Light)`) on set completion tap. Import only where used.
 - **Press animations:** Always use `AnimatedPressable` (`components/AnimatedPressable.tsx`) for any pressable element that needs scale feedback. Never hand-roll Reanimated scale logic in individual components. The defaults (scale 0.97, 100ms press-in) are the app standard — only override via props if a specific element genuinely needs different values.
+- **Animations:** The app uses **Reanimated v3+** (`react-native-reanimated`) exclusively — worklets, `useSharedValue`, `useAnimatedStyle`, `withTiming`, and declarative `entering`/`exiting` props. Do not use the legacy `Animated` API from `react-native` (it runs bookkeeping on the JS thread and feels choppy next to Reanimated views). Follow the patterns in `AnimatedPressable.tsx`, `AnimatedScreen.tsx`, and `AddExerciseModal.tsx`. Typical durations live in the 100–350ms range; use `Easing.out(Easing.cubic)` for slide-in and `Easing.in(Easing.cubic)` for slide-out to match the iOS modal feel.
 
 ### Navigation
 - The active workout screen (`workout/[id]`) should be presented as a full-screen modal via Expo Router's `presentation: 'modal'` option. The user should not accidentally navigate away mid-workout.
@@ -70,6 +71,8 @@ constants/
 - See `docs/DESIGN.md` for the full token set, component patterns, and typography scale.
 
 ## Workflow
+
+**Consistency first.** Before planning or implementing anything, look at what's already working well in the codebase and stay consistent with it. Check existing components, utilities, animation libraries, styling patterns, and state conventions before reaching for something new. If the app already uses Reanimated, don't add legacy `Animated`; if it already has `AnimatedPressable`, don't hand-roll a scale animation; if there's a shared hook or helper that fits, reuse it. Plans should call out which existing patterns/files the new code mirrors. Only deviate when there's a concrete reason, and flag it explicitly in the plan.
 
 Work in small, testable batches. After completing a meaningful unit of work (a new screen, a db layer, a component wired up end-to-end), **stop and let me test it and commit before moving on.** Do not chain multiple features together in one pass.
 

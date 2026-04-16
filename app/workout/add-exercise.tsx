@@ -24,6 +24,8 @@ import {
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { getLastPerformance } from '@/db/workouts';
 import ExerciseListItem from '@/components/ExerciseListItem';
+import AnimatedPressable from '@/components/AnimatedPressable';
+import AddExerciseModal from '@/components/AddExerciseModal';
 
 export default function AddExerciseScreen() {
   const colors = useColors();
@@ -32,6 +34,7 @@ export default function AddExerciseScreen() {
 
   const [search, setSearch] = useState('');
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const workoutId = useWorkoutStore((s) => s.workoutId);
   const exerciseIds = useWorkoutStore((s) => s.exerciseIds);
@@ -79,6 +82,15 @@ export default function AddExerciseScreen() {
     [exerciseIds, workoutId, addExercise, addSet, addSetWithValues]
   );
 
+  const handleCustomExerciseAdded = useCallback(
+    (id: number, name: string, muscleGroup: string) => {
+      addExercise(id, name, muscleGroup);
+      addSet(id);
+      router.back();
+    },
+    [addExercise, addSet, router]
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: Exercise }) => {
       const alreadyAdded = exerciseIds.includes(item.id);
@@ -107,13 +119,22 @@ export default function AddExerciseScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Add Exercise</Text>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={8}
-          style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
-        >
-          <Ionicons name="close" size={24} color={colors.text} />
-        </Pressable>
+        <View style={styles.headerButtons}>
+          <AnimatedPressable
+            onPress={() => setModalVisible(true)}
+            hitSlop={8}
+            style={styles.createButton}
+          >
+            <Ionicons name="add" size={22} color={colors.primary} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.back()}
+            hitSlop={8}
+            style={styles.closeButton}
+          >
+            <Ionicons name="close" size={24} color={colors.text} />
+          </AnimatedPressable>
+        </View>
       </View>
 
       {/* Search */}
@@ -169,6 +190,12 @@ export default function AddExerciseScreen() {
         keyboardDismissMode="on-drag"
         ListEmptyComponent={<Text style={styles.emptyText}>No exercises found</Text>}
       />
+
+      <AddExerciseModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onAdd={handleCustomExerciseAdded}
+      />
     </SafeAreaView>
   );
 }
@@ -192,15 +219,25 @@ const createStyles = (colors: Colors) =>
       fontFamily: fonts.bold,
       color: colors.text,
     },
+    headerButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    createButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     closeButton: {
       width: 36,
       height: 36,
       borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    closeButtonPressed: {
-      backgroundColor: colors.bgMuted,
     },
     searchContainer: {
       flexDirection: 'row',
