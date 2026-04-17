@@ -63,7 +63,7 @@ export default function AddExerciseScreen() {
   const handleSelect = useCallback(
     (exercise: Exercise) => {
       if (exerciseIds.includes(exercise.id)) return;
-      addExercise(exercise.id, exercise.name, exercise.muscle_group);
+      addExercise(exercise.id, exercise.name, exercise.muscle_group, !!exercise.is_assisted);
 
       const lastSets = workoutId !== null
         ? getLastPerformance(exercise.id, workoutId)
@@ -83,8 +83,8 @@ export default function AddExerciseScreen() {
   );
 
   const handleCustomExerciseAdded = useCallback(
-    (id: number, name: string, muscleGroup: string) => {
-      addExercise(id, name, muscleGroup);
+    (id: number, name: string, muscleGroup: string, isAssisted: boolean) => {
+      addExercise(id, name, muscleGroup, isAssisted);
       addSet(id);
       router.back();
     },

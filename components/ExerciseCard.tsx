@@ -88,7 +88,7 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
       {/* Set column headers */}
       <View style={styles.setHeaderRow}>
         <Text style={[styles.setHeaderText, styles.setNumberCol]}>SET</Text>
-        <Text style={[styles.setHeaderText, styles.weightCol]}>LBS</Text>
+        <Text style={[styles.setHeaderText, styles.weightCol]}>{exercise.isAssisted ? 'ASSIST' : 'LBS'}</Text>
         <Text style={[styles.setHeaderText, styles.repsCol]}>REPS</Text>
         <View style={styles.checkCol} />
       </View>

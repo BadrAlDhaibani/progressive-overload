@@ -29,6 +29,7 @@ function formatDuration(startedAt: string, finishedAt: string): string {
 interface ExerciseGroup {
   exerciseName: string;
   muscleGroup: string;
+  isAssisted: boolean;
   sets: WorkoutSetWithExercise[];
 }
 
@@ -40,6 +41,7 @@ function groupByExercise(sets: WorkoutSetWithExercise[]): ExerciseGroup[] {
       group = {
         exerciseName: s.exercise_name,
         muscleGroup: s.muscle_group,
+        isAssisted: !!s.is_assisted,
         sets: [],
       };
       map.set(s.exercise_id, group);
@@ -133,7 +135,7 @@ export default function SummaryScreen() {
           {exerciseGroups.map((group, i) => (
             <View key={i} style={styles.exerciseBlock}>
               <View style={styles.exerciseHeader}>
-                <Text style={styles.exerciseName}>{group.exerciseName}</Text>
+                <Text style={styles.exerciseName}>{group.exerciseName}{group.isAssisted ? ' (assisted)' : ''}</Text>
                 <View style={[styles.muscleGroupBadge, { backgroundColor: mgColors[group.muscleGroup as MuscleGroup]?.bg ?? colors.bgMuted }]}>
                   <Text style={[styles.muscleGroupText, { color: mgColors[group.muscleGroup as MuscleGroup]?.text ?? colors.textMuted }]}>
                     {group.muscleGroup}

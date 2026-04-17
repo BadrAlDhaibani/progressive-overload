@@ -10,6 +10,7 @@ import {
   Keyboard,
   Platform,
   Dimensions,
+  Switch,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -31,7 +32,7 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 interface AddExerciseModalProps {
   visible: boolean;
   onClose: () => void;
-  onAdd?: (id: number, name: string, muscleGroup: string) => void;
+  onAdd?: (id: number, name: string, muscleGroup: string, isAssisted: boolean) => void;
 }
 
 export default function AddExerciseModal({ visible, onClose, onAdd }: AddExerciseModalProps) {
@@ -42,6 +43,7 @@ export default function AddExerciseModal({ visible, onClose, onAdd }: AddExercis
   const [newName, setNewName] = useState('');
   const [newMuscleGroup, setNewMuscleGroup] = useState<string>(muscleGroups[0]);
   const [newEquipment, setNewEquipment] = useState<string>(equipmentOptions[0]);
+  const [isAssisted, setIsAssisted] = useState(false);
   const [shouldRender, setShouldRender] = useState(false);
 
   const backdropOpacity = useSharedValue(0);
@@ -83,6 +85,7 @@ export default function AddExerciseModal({ visible, onClose, onAdd }: AddExercis
       setNewName('');
       setNewMuscleGroup(muscleGroups[0]);
       setNewEquipment(equipmentOptions[0]);
+      setIsAssisted(false);
       setShouldRender(true);
     } else if (shouldRender) {
       Keyboard.dismiss();
@@ -123,13 +126,13 @@ export default function AddExerciseModal({ visible, onClose, onAdd }: AddExercis
     const trimmed = newName.trim();
     if (!trimmed) return;
 
-    const id = insertCustomExercise(trimmed, newMuscleGroup, newEquipment);
+    const id = insertCustomExercise(trimmed, newMuscleGroup, newEquipment, isAssisted);
     if (onAdd) {
-      onAdd(id, trimmed, newMuscleGroup);
+      onAdd(id, trimmed, newMuscleGroup, isAssisted);
     } else {
       onClose();
     }
-  }, [newName, newMuscleGroup, newEquipment, onAdd, onClose]);
+  }, [newName, newMuscleGroup, newEquipment, isAssisted, onAdd, onClose]);
 
   return (
     <Modal visible={shouldRender} animationType="none" transparent>
@@ -211,6 +214,19 @@ export default function AddExerciseModal({ visible, onClose, onAdd }: AddExercis
                 );
               }}
             />
+
+            <Pressable style={styles.assistedRow} onPress={() => setIsAssisted((v) => !v)}>
+              <View style={styles.assistedLabel}>
+                <Text style={styles.fieldLabel}>Assisted</Text>
+                <Text style={styles.assistedHint}>e.g., pull-up machine</Text>
+              </View>
+              <Switch
+                value={isAssisted}
+                onValueChange={setIsAssisted}
+                trackColor={{ false: colors.border, true: colors.primaryLight }}
+                thumbColor={isAssisted ? colors.primary : colors.bgMuted}
+              />
+            </Pressable>
 
             <View style={styles.buttons}>
               <Pressable style={styles.cancelButton} onPress={onClose}>
@@ -298,6 +314,22 @@ const createStyles = (colors: Colors) =>
       fontSize: 13,
       fontFamily: fonts.medium,
       color: colors.textSecondary,
+    },
+    assistedRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: 16,
+      paddingVertical: 4,
+    },
+    assistedLabel: {
+      flex: 1,
+    },
+    assistedHint: {
+      fontSize: 12,
+      fontFamily: fonts.regular,
+      color: colors.textMuted,
+      marginTop: 2,
     },
     buttons: {
       flexDirection: 'row',

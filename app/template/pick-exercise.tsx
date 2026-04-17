@@ -69,6 +69,7 @@ export default function PickExerciseScreen() {
         exercise_name: exercise.name,
         muscle_group: exercise.muscle_group,
         equipment: exercise.equipment,
+        is_assisted: exercise.is_assisted,
         default_sets: lastSets.length > 0 ? lastSets.length : 1,
         default_reps: lastSets.length > 0 ? (lastSets[0].reps ?? 0) : 0,
       });

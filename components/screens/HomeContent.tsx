@@ -109,7 +109,7 @@ export default function HomeContent() {
       startWorkout(id);
 
       for (const ex of data.exercises) {
-        addExercise(ex.exercise_id, ex.exercise_name, ex.muscle_group);
+        addExercise(ex.exercise_id, ex.exercise_name, ex.muscle_group, !!ex.is_assisted);
 
         const lastSets = getLastPerformance(ex.exercise_id, id);
         if (lastSets.length > 0) {

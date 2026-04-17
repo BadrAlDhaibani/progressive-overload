@@ -22,6 +22,7 @@ export interface WorkoutSet {
 export interface WorkoutSetWithExercise extends WorkoutSet {
   exercise_name: string;
   muscle_group: string;
+  is_assisted: number;
 }
 
 export interface LastPerformanceSet {
@@ -108,7 +109,7 @@ export function deleteSet(id: number): void {
 
 export function getWorkoutSets(workoutId: number): WorkoutSetWithExercise[] {
   return db.getAllSync<WorkoutSetWithExercise>(
-    `SELECT s.*, e.name AS exercise_name, e.muscle_group
+    `SELECT s.*, e.name AS exercise_name, e.muscle_group, e.is_assisted
      FROM sets s
      JOIN exercises e ON s.exercise_id = e.id
      WHERE s.workout_id = ?

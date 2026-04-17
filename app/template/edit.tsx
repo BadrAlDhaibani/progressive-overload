@@ -52,6 +52,7 @@ export default function TemplateEditScreen() {
             exercise_name: e.exercise_name,
             muscle_group: e.muscle_group,
             equipment: e.equipment,
+            is_assisted: e.is_assisted,
             default_sets: e.default_sets,
             default_reps: e.default_reps,
           }))

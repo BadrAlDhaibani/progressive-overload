@@ -11,6 +11,7 @@ export interface TemplateExercise {
   exercise_name: string;
   muscle_group: string;
   equipment: string;
+  is_assisted: number;
   sort_order: number;
   default_sets: number;
   default_reps: number;
@@ -32,7 +33,7 @@ export function getTemplateWithExercises(templateId: number): {
 
   const exercises = db.getAllSync<TemplateExercise>(
     `SELECT te.sort_order, te.default_sets, te.default_reps,
-            e.id AS exercise_id, e.name AS exercise_name, e.muscle_group, e.equipment
+            e.id AS exercise_id, e.name AS exercise_name, e.muscle_group, e.equipment, e.is_assisted
      FROM template_exercises te
      JOIN exercises e ON te.exercise_id = e.id
      WHERE te.template_id = ?

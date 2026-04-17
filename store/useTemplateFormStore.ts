@@ -5,6 +5,7 @@ export interface TemplateExerciseEntry {
   exercise_name: string;
   muscle_group: string;
   equipment: string;
+  is_assisted: number;
   default_sets: number;
   default_reps: number;
 }

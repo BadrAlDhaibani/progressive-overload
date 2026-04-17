@@ -6,6 +6,7 @@ export interface Exercise {
   muscle_group: string;
   equipment: string;
   is_custom: number;
+  is_assisted: number;
   created_at: string;
 }
 
@@ -30,13 +31,15 @@ export function searchExercises(query: string): Exercise[] {
 export function insertCustomExercise(
   name: string,
   muscleGroup: string,
-  equipment: string
+  equipment: string,
+  isAssisted = false
 ): number {
   const result = db.runSync(
-    'INSERT INTO exercises (name, muscle_group, equipment, is_custom) VALUES (?, ?, ?, 1)',
+    'INSERT INTO exercises (name, muscle_group, equipment, is_custom, is_assisted) VALUES (?, ?, ?, 1, ?)',
     name,
     muscleGroup,
-    equipment
+    equipment,
+    isAssisted ? 1 : 0
   );
   return result.lastInsertRowId;
 }

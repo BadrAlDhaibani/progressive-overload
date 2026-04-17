@@ -14,6 +14,7 @@ export function initDatabase(): void {
       muscle_group  TEXT NOT NULL,
       equipment     TEXT DEFAULT 'Barbell',
       is_custom     INTEGER DEFAULT 0,
+      is_assisted   INTEGER DEFAULT 0,
       created_at    TEXT DEFAULT (datetime('now'))
     );
 
@@ -59,6 +60,12 @@ export function initDatabase(): void {
   const result = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
   if (result && result.user_version === 0) {
     seedDatabase(db);
-    db.execSync('PRAGMA user_version = 1');
+    db.execSync('PRAGMA user_version = 2');
+  } else if (result && result.user_version === 1) {
+    const cols = db.getAllSync<{ name: string }>('PRAGMA table_info(exercises)');
+    if (!cols.some((c) => c.name === 'is_assisted')) {
+      db.execSync('ALTER TABLE exercises ADD COLUMN is_assisted INTEGER DEFAULT 0');
+    }
+    db.execSync('PRAGMA user_version = 2');
   }
 }
