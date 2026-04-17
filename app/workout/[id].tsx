@@ -50,18 +50,25 @@ export default function WorkoutScreen() {
   }, [startedAt]);
 
   const handleFinish = useCallback(() => {
+    const sets = useWorkoutStore.getState().sets;
+    const hasIncomplete = Object.values(sets).some((s) => !s.isComplete);
+
+    const doFinish = () => {
+      const id = workoutId;
+      finish();
+      router.replace(`/workout/summary?workoutId=${id}`);
+    };
+
+    if (!hasIncomplete) {
+      doFinish();
+      return;
+    }
+
     Alert.alert('Finish Workout?', 'Incomplete sets will not be saved.', [
       { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Finish',
-        onPress: () => {
-          const id = workoutId;
-          finish();
-          router.replace(`/workout/summary?workoutId=${id}`);
-        },
-      },
+      { text: 'Finish', onPress: doFinish },
     ]);
-  }, [finish]);
+  }, [finish, workoutId]);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Workout?', 'All progress will be lost.', [
