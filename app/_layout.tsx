@@ -84,6 +84,12 @@ export default function RootLayout() {
             gestureEnabled: true,
           }}
         />
+        <Stack.Screen
+          name="exercise/[id]"
+          options={{
+            gestureEnabled: true,
+          }}
+        />
       </Stack>
     </GestureHandlerRootView>
   );

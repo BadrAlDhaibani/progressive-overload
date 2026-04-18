@@ -14,6 +14,10 @@ export function getAllExercises(): Exercise[] {
   return db.getAllSync<Exercise>('SELECT * FROM exercises ORDER BY name');
 }
 
+export function getExerciseById(id: number): Exercise | null {
+  return db.getFirstSync<Exercise>('SELECT * FROM exercises WHERE id = ?', id);
+}
+
 export function getExercisesByMuscleGroup(group: string): Exercise[] {
   return db.getAllSync<Exercise>(
     'SELECT * FROM exercises WHERE muscle_group = ? ORDER BY name',

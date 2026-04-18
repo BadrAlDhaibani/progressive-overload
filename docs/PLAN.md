@@ -450,8 +450,8 @@ After TestFlight testing (S5), user and tester feedback identified 7 quality-of-
 | F2 | Done | Long-Press Pulse on Exercise Cards |
 | F3 | Done | Custom Exercise Creation Mid-Workout |
 | F4 | Done | Assisted Weight Input |
-| F5 | Pending | Workout UX: Full Swipe Delete + Smart Finish Warning |
-| F6 | Pending | Exercise History & Progression Screen |
+| F5 | Done | Workout UX: Full Swipe Delete + Smart Finish Warning |
+| F6 | Done | Exercise History & Progression Screen |
 
 ## Dependency Chain
 

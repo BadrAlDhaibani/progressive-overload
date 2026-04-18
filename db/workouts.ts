@@ -31,6 +31,14 @@ export interface LastPerformanceSet {
   reps: number | null;
 }
 
+export interface ExerciseHistoryRow {
+  workout_id: number;
+  started_at: string;
+  set_order: number;
+  weight: number | null;
+  reps: number | null;
+}
+
 export function createWorkout(name?: string): number {
   const result = db.runSync(
     'INSERT INTO workouts (name) VALUES (?)',
@@ -141,4 +149,17 @@ export function getLastPerformance(
   return rows
     .filter((r) => r.workout_id === targetWorkoutId)
     .map(({ set_order, weight, reps }) => ({ set_order, weight, reps }));
+}
+
+export function getExerciseHistory(exerciseId: number): ExerciseHistoryRow[] {
+  return db.getAllSync<ExerciseHistoryRow>(
+    `SELECT w.id AS workout_id, w.started_at, s.set_order, s.weight, s.reps
+     FROM sets s
+     JOIN workouts w ON s.workout_id = w.id
+     WHERE s.exercise_id = ?
+       AND w.finished_at IS NOT NULL
+       AND s.is_complete = 1
+     ORDER BY w.started_at DESC, s.set_order ASC`,
+    exerciseId
+  );
 }

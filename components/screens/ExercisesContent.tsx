@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
@@ -57,9 +58,15 @@ export default function ExercisesContent() {
     setModalVisible(false);
   }, []);
 
+  const handleExercisePress = useCallback((exercise: Exercise) => {
+    router.push({ pathname: '/exercise/[id]', params: { id: exercise.id } });
+  }, []);
+
   const renderItem = useCallback(
-    ({ item }: { item: Exercise }) => <ExerciseListItem exercise={item} />,
-    []
+    ({ item }: { item: Exercise }) => (
+      <ExerciseListItem exercise={item} onPress={handleExercisePress} />
+    ),
+    [handleExercisePress]
   );
 
   const keyExtractor = useCallback((item: Exercise) => item.id.toString(), []);
