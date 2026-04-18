@@ -7,9 +7,11 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  Alert,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
@@ -21,9 +23,13 @@ import {
   getAllExercises,
   getExercisesByMuscleGroup,
   searchExercises,
+  getExerciseUsage,
+  deleteExercise,
   type Exercise,
 } from '@/db/exercises';
 import ExerciseListItem from '@/components/ExerciseListItem';
+
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 
 export default function ExercisesContent() {
   const colors = useColors();
@@ -62,11 +68,47 @@ export default function ExercisesContent() {
     router.push({ pathname: '/exercise/[id]', params: { id: exercise.id } });
   }, []);
 
+  const handleExerciseLongPress = useCallback((exercise: Exercise) => {
+    const usage = getExerciseUsage(exercise.id);
+    const { setsCount, workoutsCount, templatesCount } = usage;
+
+    let message: string;
+    if (setsCount === 0 && templatesCount === 0) {
+      message = 'This cannot be undone.';
+    } else {
+      const parts: string[] = [];
+      if (setsCount > 0) {
+        parts.push(`${plural(setsCount, 'set')} across ${plural(workoutsCount, 'workout')}`);
+      }
+      if (templatesCount > 0) {
+        parts.push(`remove it from ${plural(templatesCount, 'template')}`);
+      }
+      message = `This will permanently delete ${parts.join(', and ')}. This cannot be undone.`;
+    }
+
+    Alert.alert(`Delete '${exercise.name}'?`, message, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: () => {
+          deleteExercise(exercise.id);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          setRefreshKey((k) => k + 1);
+        },
+      },
+    ]);
+  }, []);
+
   const renderItem = useCallback(
     ({ item }: { item: Exercise }) => (
-      <ExerciseListItem exercise={item} onPress={handleExercisePress} />
+      <ExerciseListItem
+        exercise={item}
+        onPress={handleExercisePress}
+        onLongPress={handleExerciseLongPress}
+      />
     ),
-    [handleExercisePress]
+    [handleExercisePress, handleExerciseLongPress]
   );
 
   const keyExtractor = useCallback((item: Exercise) => item.id.toString(), []);

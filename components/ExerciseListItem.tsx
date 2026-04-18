@@ -10,9 +10,10 @@ import type { Exercise } from '@/db/exercises';
 interface Props {
   exercise: Exercise;
   onPress?: (exercise: Exercise) => void;
+  onLongPress?: (exercise: Exercise) => void;
 }
 
-function ExerciseListItem({ exercise, onPress }: Props) {
+function ExerciseListItem({ exercise, onPress, onLongPress }: Props) {
   const colors = useColors();
   const mgColors = useMuscleGroupColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -22,6 +23,7 @@ function ExerciseListItem({ exercise, onPress }: Props) {
     <Pressable
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
       onPress={() => onPress?.(exercise)}
+      onLongPress={onLongPress ? () => onLongPress(exercise) : undefined}
     >
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>

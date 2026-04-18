@@ -1006,3 +1006,50 @@ eas submit --platform ios --latest
 2. **Dead dark mode code in `colors.ts`** — harmless but cleanup recommended (S1)
 3. **`supportsTablet`** — will be set to `false` (iPhone only) (S1)
 4. **App name lowercase** — `"proverload"` should be `"Provolone"` (S1)
+
+---
+---
+
+# Phase 1.6: Pre-Publish Feature Additions
+
+## Context
+
+After TestFlight testing (S5), publishing was paused to add more features and verify everything before submitting to the App Store. S6 and S7 remain pending; additional feature batches land here first.
+
+## Progress
+
+| Batch | Status | Description |
+|-------|--------|-------------|
+| F7 | Pending | Delete exercises from library (cascade) |
+
+---
+
+## F7: Delete Exercises from Library
+
+**Goal**: Long-press any exercise in the Exercises tab → confirm → cascade-delete the exercise plus every set and template entry that references it, and clean up any workouts/templates that become empty as a result.
+
+**Create:** *(none)*
+
+**Modify:**
+- `db/exercises.ts`:
+  - New `ExerciseUsage` interface and `getExerciseUsage(id)` — returns `{ setsCount, workoutsCount, templatesCount }` for the confirmation message
+  - New `deleteExercise(id)` — wrapped in `BEGIN`/`COMMIT`/`ROLLBACK` (matching `replaceTemplateExercises` style). Captures affected workout/template ids first, deletes sets + template_exercises, then removes any workouts/templates that have no remaining children, then deletes the exercise itself.
+- `components/ExerciseListItem.tsx`:
+  - Added optional `onLongPress?: (exercise: Exercise) => void` prop, forwarded to the `Pressable`. Only attached when provided so existing callers (e.g., pickers) are unaffected.
+- `components/screens/ExercisesContent.tsx`:
+  - New `handleExerciseLongPress` callback: reads usage counts, shows an `Alert.alert` with an accurate destructive message (honest pluralization for sets/workouts/templates), confirms via destructive button, then deletes + fires `Haptics.notificationAsync(Warning)` + bumps `refreshKey`.
+  - Wired into `renderItem` as `onLongPress` on `ExerciseListItem`.
+
+**Decisions:**
+- All exercises deletable, including seeded ones (re-seeding is gated by `user_version`, so deletions are permanent — accepted).
+- Cascade strategy lives in app-level transaction (no schema migration) since SQLite can't add `ON DELETE CASCADE` to existing FKs without recreating the tables.
+
+**Known limitation:** If the user is mid-workout and somehow deletes an exercise that's in their current session, completing a new set will fail the FK constraint on write. The active workout is presented as `fullScreenModal`, so this shouldn't be reachable via normal navigation — not solved in this batch.
+
+**Test**:
+1. Long-press a custom exercise with no usage → Alert title `Delete 'X'?`, message `This cannot be undone.` → Delete removes it from the list.
+2. Long-press a well-used seeded exercise → message reports accurate counts (`X sets across Y workouts, and remove it from Z templates`) → Delete removes the exercise, its sets, and its template entries.
+3. Create a workout with one exercise, finish it, delete that exercise → the workout disappears from History (empty workout cleaned up).
+4. Create a template with one exercise, delete that exercise → the template disappears from the Home carousel.
+5. After delete, start a workout and tap "Add Exercise" → deleted exercise is not in the picker.
+6. Cancel leaves data unchanged. Search, muscle-group chips, pull-to-refresh, and the Add-custom-exercise modal all still work.
