@@ -11,6 +11,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initDatabase } from '@/db/database';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export {
   ErrorBoundary,
@@ -39,6 +40,7 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
+      useAuthStore.getState().init();
     }
   }, [loaded]);
 
@@ -89,6 +91,18 @@ export default function RootLayout() {
           options={{
             gestureEnabled: true,
           }}
+        />
+        <Stack.Screen
+          name="chat/[id]"
+          options={{ gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="chat/new"
+          options={{ presentation: 'modal', gestureEnabled: true }}
+        />
+        <Stack.Screen
+          name="settings/username"
+          options={{ presentation: 'modal', gestureEnabled: true }}
         />
       </Stack>
     </GestureHandlerRootView>
