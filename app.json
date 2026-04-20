@@ -46,9 +46,7 @@
       "router": {},
       "eas": {
         "projectId": "01deca3e-1004-4a2e-9100-b515a9ced315"
-      },
-      "supabaseUrl": "https://uryicmyngisqhsyileck.supabase.co",
-      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVyeWljbXluZ2lzcWhzeWlsZWNrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1Mjg5MzMsImV4cCI6MjA5MjEwNDkzM30.j0MLbeCVdpqTKgOd6dKA1mKGT3gwuQbDXlbnvH_aaFU"
+      }
     },
     "owner": "badraldhaibani"
   }

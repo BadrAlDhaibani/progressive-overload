@@ -6,9 +6,14 @@ The Friends tab (Leaderboard + Chats + Sign in with Apple) needs a Supabase proj
 
 1. Sign in at https://supabase.com → New project.
 2. Copy the **Project URL** and **anon public key** from *Project Settings → API*.
-3. Put them in `app.json` under `expo.extra.supabaseUrl` / `expo.extra.supabaseAnonKey`, or export them as `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+3. Create a `.env` file at the repo root (or set shell env vars) with:
+   ```
+   EXPO_PUBLIC_SUPABASE_URL=https://YOUR-PROJECT.supabase.co
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR-ANON-KEY
+   ```
+   See `.env.example` for the template. `.env` is gitignored — never commit it.
 
-Share these two values with other engineers; nothing else is needed to hit the dev data.
+Share these two values with other engineers out-of-band (password manager, 1Password, etc.); do not put them in `app.json` or any committed file.
 
 ## 2. Run the migration
 

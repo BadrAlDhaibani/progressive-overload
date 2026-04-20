@@ -16,6 +16,7 @@ import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import CheeseSlice from './CheeseSlice';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -150,36 +151,31 @@ export default function SignInPanel() {
 
         {showChoose ? (
           <>
-            <Pressable
+            <AnimatedPressable
               onPress={handleAppleSignIn}
               disabled={busy}
-              style={({ pressed }) => [
-                styles.buttonApple,
-                pressed && styles.buttonPressed,
-                busy && styles.buttonDisabled,
-              ]}
+              containerStyle={styles.buttonWrap}
+              style={[styles.buttonApple, busy && styles.buttonDisabled]}
             >
               <Ionicons name="logo-apple" size={20} color={colors.isDark ? '#000' : '#fff'} />
               <Text style={styles.buttonAppleText}>
                 {busy ? 'Signing in…' : 'Sign in with Apple'}
               </Text>
-            </Pressable>
+            </AnimatedPressable>
 
-            <Pressable
+            <AnimatedPressable
               onPress={() => {
                 setMode('email');
                 setError(null);
                 setInfo(null);
               }}
               disabled={busy}
-              style={({ pressed }) => [
-                styles.buttonOutlined,
-                pressed && styles.buttonPressed,
-              ]}
+              containerStyle={styles.buttonWrap}
+              style={styles.buttonOutlined}
             >
               <Ionicons name="mail-outline" size={20} color={colors.text} />
               <Text style={styles.buttonOutlinedText}>Continue with Email</Text>
-            </Pressable>
+            </AnimatedPressable>
           </>
         ) : (
           <>
@@ -212,14 +208,11 @@ export default function SignInPanel() {
               returnKeyType={emailMode === 'sign-in' ? 'go' : 'done'}
             />
 
-            <Pressable
+            <AnimatedPressable
               onPress={handleEmailSubmit}
               disabled={busy}
-              style={({ pressed }) => [
-                styles.buttonPrimary,
-                pressed && styles.buttonPressed,
-                busy && styles.buttonDisabled,
-              ]}
+              containerStyle={styles.buttonWrap}
+              style={[styles.buttonPrimary, busy && styles.buttonDisabled]}
             >
               <Text style={styles.buttonPrimaryText}>
                 {busy
@@ -228,7 +221,7 @@ export default function SignInPanel() {
                   ? 'Sign In'
                   : 'Create Account'}
               </Text>
-            </Pressable>
+            </AnimatedPressable>
 
             <View style={styles.linkRow}>
               <Pressable
@@ -313,12 +306,14 @@ const createStyles = (colors: Colors) =>
       marginBottom: 24,
       paddingHorizontal: 8,
     },
+    buttonWrap: {
+      width: '100%',
+    },
     buttonApple: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      width: '100%',
       height: 52,
       borderRadius: 14,
       backgroundColor: colors.isDark ? '#ffffff' : '#000000',
@@ -333,7 +328,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      width: '100%',
       height: 52,
       borderRadius: 14,
       backgroundColor: 'transparent',
@@ -350,7 +344,6 @@ const createStyles = (colors: Colors) =>
       alignItems: 'center',
       justifyContent: 'center',
       gap: 8,
-      width: '100%',
       height: 52,
       borderRadius: 14,
       backgroundColor: colors.primary,
@@ -360,9 +353,6 @@ const createStyles = (colors: Colors) =>
       color: colors.textOnPrimary,
       fontSize: 16,
       fontFamily: fonts.semiBold,
-    },
-    buttonPressed: {
-      opacity: 0.85,
     },
     buttonDisabled: {
       opacity: 0.6,

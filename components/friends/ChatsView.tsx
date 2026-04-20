@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import AnimatedPressable from '@/components/AnimatedPressable';
 import ChatListItem from './ChatListItem';
 import { listChats } from '@/lib/social/chats';
 import type { ChatSummary } from '@/lib/social/types';
@@ -48,10 +49,10 @@ export default function ChatsView() {
 
   return (
     <View style={styles.container}>
-      <Pressable style={styles.newChatButton} onPress={() => router.push('/chat/new')}>
+      <AnimatedPressable style={styles.newChatButton} onPress={() => router.push('/chat/new')}>
         <Ionicons name="add-circle" size={22} color={colors.primary} />
         <Text style={styles.newChatText}>Add by username</Text>
-      </Pressable>
+      </AnimatedPressable>
 
       {error ? (
         <View style={styles.state}>

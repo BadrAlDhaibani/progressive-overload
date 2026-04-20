@@ -1,9 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { StyleSheet, TextInput, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import AnimatedPressable from '@/components/AnimatedPressable';
 
 interface Props {
   onSend: (body: string) => Promise<void>;
@@ -41,13 +42,13 @@ export default function MessageInput({ onSend }: Props) {
         maxLength={2000}
         returnKeyType="default"
       />
-      <Pressable
+      <AnimatedPressable
         onPress={handleSend}
         disabled={!canSend}
         style={[styles.sendButton, !canSend && styles.sendDisabled]}
       >
         <Ionicons name="arrow-up" size={20} color={colors.textOnPrimary} />
-      </Pressable>
+      </AnimatedPressable>
     </View>
   );
 }
