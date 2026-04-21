@@ -40,9 +40,10 @@ export default function ScreenHeader({ title, rightLabel, onRightPress, disabled
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
     bar: {
-      height: 44,
+      height: 50,
       flexDirection: 'row',
       alignItems: 'center',
+      paddingTop: 6,
       paddingHorizontal: 12,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,

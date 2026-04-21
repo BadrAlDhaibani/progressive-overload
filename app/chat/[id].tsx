@@ -83,7 +83,7 @@ export default function ChatScreen() {
   }, [messages.length]);
 
   return (
-    <SafeAreaView style={styles.root} edges={['top']}>
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <ScreenHeader title={partner ? `@${partner.username}` : 'Chat'} />
       <KeyboardAvoidingView
         style={styles.flex}

@@ -10,6 +10,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initDatabase } from '@/db/database';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -50,61 +51,63 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen
-          name="workout/[id]"
-          options={{
-            presentation: 'fullScreenModal',
-            gestureEnabled: false,
-          }}
-        />
-        <Stack.Screen
-          name="workout/add-exercise"
-          options={{
-            presentation: 'modal',
-            gestureEnabled: true,
-          }}
-        />
-        <Stack.Screen
-          name="workout/summary"
-          options={{
-            gestureEnabled: false,
-          }}
-        />
-        <Stack.Screen
-          name="template/edit"
-          options={{
-            presentation: 'fullScreenModal',
-            gestureEnabled: false,
-          }}
-        />
-        <Stack.Screen
-          name="template/pick-exercise"
-          options={{
-            presentation: 'modal',
-            gestureEnabled: true,
-          }}
-        />
-        <Stack.Screen
-          name="exercise/[id]"
-          options={{
-            gestureEnabled: true,
-          }}
-        />
-        <Stack.Screen
-          name="chat/[id]"
-          options={{ gestureEnabled: true }}
-        />
-        <Stack.Screen
-          name="chat/new"
-          options={{ presentation: 'modal', gestureEnabled: true }}
-        />
-        <Stack.Screen
-          name="settings/username"
-          options={{ presentation: 'modal', gestureEnabled: true }}
-        />
-      </Stack>
+      <SafeAreaProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen
+            name="workout/[id]"
+            options={{
+              presentation: 'fullScreenModal',
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name="workout/add-exercise"
+            options={{
+              presentation: 'modal',
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen
+            name="workout/summary"
+            options={{
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name="template/edit"
+            options={{
+              presentation: 'fullScreenModal',
+              gestureEnabled: false,
+            }}
+          />
+          <Stack.Screen
+            name="template/pick-exercise"
+            options={{
+              presentation: 'modal',
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen
+            name="exercise/[id]"
+            options={{
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen
+            name="chat/[id]"
+            options={{ gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="chat/new"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="settings/username"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
+        </Stack>
+      </SafeAreaProvider>
     </GestureHandlerRootView>
   );
 }

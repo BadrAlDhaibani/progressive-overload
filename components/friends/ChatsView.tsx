@@ -18,18 +18,21 @@ export default function ChatsView() {
   const myId = useAuthStore((s) => s.userId);
   const [chats, setChats] = useState<ChatSummary[]>([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async ({ isRefresh = false }: { isRefresh?: boolean } = {}) => {
     if (!myId) return;
-    setLoading(true);
+    if (isRefresh) setRefreshing(true);
+    else setLoading(true);
     setError(null);
     try {
       setChats(await listChats(myId));
     } catch (e: any) {
       setError(e?.message ?? 'Could not load chats.');
     } finally {
-      setLoading(false);
+      if (isRefresh) setRefreshing(false);
+      else setLoading(false);
     }
   }, [myId]);
 
@@ -73,8 +76,8 @@ export default function ChatsView() {
           )}
           refreshControl={
             <RefreshControl
-              refreshing={loading}
-              onRefresh={load}
+              refreshing={refreshing}
+              onRefresh={() => load({ isRefresh: true })}
               tintColor={colors.primary}
               colors={[colors.primary]}
             />
