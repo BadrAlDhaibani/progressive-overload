@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
@@ -21,7 +21,9 @@ export default function NewChatScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
-  const [value, setValue] = useState('');
+  const { u } = useLocalSearchParams<{ u?: string }>();
+  const hasPrefill = Boolean(u);
+  const [value, setValue] = useState(u ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -70,7 +72,7 @@ export default function NewChatScreen() {
               placeholderTextColor={colors.textMuted}
               autoCapitalize="none"
               autoCorrect={false}
-              autoFocus
+              autoFocus={!hasPrefill}
               returnKeyType="go"
               onSubmitEditing={handleSubmit}
             />

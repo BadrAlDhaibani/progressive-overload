@@ -52,9 +52,9 @@ export default function ChatsView() {
 
   return (
     <View style={styles.container}>
-      <AnimatedPressable style={styles.newChatButton} onPress={() => router.push('/chat/new')}>
+      <AnimatedPressable style={styles.newChatButton} onPress={() => router.push('/friends/add')}>
         <Ionicons name="add-circle" size={22} color={colors.primary} />
-        <Text style={styles.newChatText}>Add by username</Text>
+        <Text style={styles.newChatText}>Add Friends</Text>
       </AnimatedPressable>
 
       {error ? (

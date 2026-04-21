@@ -106,6 +106,10 @@ export default function RootLayout() {
             name="settings/username"
             options={{ presentation: 'modal', gestureEnabled: true }}
           />
+          <Stack.Screen
+            name="friends/add"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>
