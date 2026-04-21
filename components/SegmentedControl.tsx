@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type LayoutChangeEvent } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import Animated, {
@@ -37,10 +37,12 @@ export default function SegmentedControl<T extends string>({
   const activeIndex = Math.max(0, options.findIndex((o) => o.value === value));
   const translate = useSharedValue(0);
 
-  translate.value = withTiming(activeIndex * segmentWidth, {
-    duration: 220,
-    easing: Easing.out(Easing.cubic),
-  });
+  useEffect(() => {
+    translate.value = withTiming(activeIndex * segmentWidth, {
+      duration: 220,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [activeIndex, segmentWidth, translate]);
 
   const thumbStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translate.value }],

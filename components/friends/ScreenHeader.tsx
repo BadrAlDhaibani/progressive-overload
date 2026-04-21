@@ -44,7 +44,7 @@ const createStyles = (colors: Colors) =>
       flexDirection: 'row',
       alignItems: 'center',
       paddingTop: 6,
-      paddingHorizontal: 12,
+      paddingHorizontal: 16,
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
       backgroundColor: colors.bg,

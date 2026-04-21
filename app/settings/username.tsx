@@ -1,13 +1,15 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
   TextInput,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
@@ -22,6 +24,7 @@ export default function UsernameScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
+  const insets = useSafeAreaInsets();
 
   const profile = useAuthStore((s) => s.profile);
   const refresh = useAuthStore((s) => s.refreshProfile);
@@ -52,7 +55,7 @@ export default function UsernameScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <ScreenHeader
-        title="Username"
+        title="Account"
         rightLabel="Save"
         onRightPress={handleSave}
         disabled={!canSave}
@@ -60,44 +63,46 @@ export default function UsernameScreen() {
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
-        <View style={styles.body}>
-          <Text style={styles.label}>Your username</Text>
-          <View style={styles.inputWrap}>
-            <Text style={styles.prefix}>@</Text>
-            <TextInput
-              style={styles.input}
-              value={value}
-              onChangeText={(t) => {
-                setValue(t);
-                setError(null);
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.body}>
+            <Text style={styles.label}>Your username</Text>
+            <View style={styles.inputWrap}>
+              <Text style={styles.prefix}>@</Text>
+              <TextInput
+                style={styles.input}
+                value={value}
+                onChangeText={(t) => {
+                  setValue(t);
+                  setError(null);
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+                maxLength={24}
+                returnKeyType="done"
+                onSubmitEditing={handleSave}
+              />
+            </View>
+            {error ? (
+              <Text style={styles.error}>{error}</Text>
+            ) : (
+              <Text style={styles.hint}>3–24 chars. Letters, numbers, and underscores.</Text>
+            )}
+
+            <View style={styles.spacer} />
+
+            <AnimatedPressable
+              onPress={() => {
+                signOut();
+                router.back();
               }}
-              autoCapitalize="none"
-              autoCorrect={false}
-              autoFocus
-              maxLength={24}
-              returnKeyType="done"
-              onSubmitEditing={handleSave}
-            />
+              style={styles.signOutRow}
+            >
+              <Text style={styles.signOutText}>Sign out</Text>
+            </AnimatedPressable>
           </View>
-          {error ? (
-            <Text style={styles.error}>{error}</Text>
-          ) : (
-            <Text style={styles.hint}>3–24 chars. Letters, numbers, and underscores.</Text>
-          )}
-
-          <View style={styles.spacer} />
-
-          <AnimatedPressable
-            onPress={() => {
-              signOut();
-              router.back();
-            }}
-            style={styles.signOutRow}
-          >
-            <Text style={styles.signOutText}>Sign out</Text>
-          </AnimatedPressable>
-        </View>
+        </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

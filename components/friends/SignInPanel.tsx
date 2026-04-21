@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -34,6 +34,8 @@ export default function SignInPanel() {
   const [emailMode, setEmailMode] = useState<EmailMode>('sign-in');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const confirmInputRef = useRef<TextInput>(null);
 
   const handleAppleSignIn = useCallback(async () => {
     if (!isSupabaseConfigured) {
@@ -93,6 +95,10 @@ export default function SignInPanel() {
       setError('Password must be at least 6 characters.');
       return;
     }
+    if (emailMode === 'sign-up' && password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
     setError(null);
     setInfo(null);
     setBusy(true);
@@ -124,6 +130,7 @@ export default function SignInPanel() {
           setInfo('Check your inbox to confirm your email, then sign in.');
           setEmailMode('sign-in');
           setPassword('');
+          setConfirmPassword('');
         }
       }
     } catch (e: any) {
@@ -131,7 +138,7 @@ export default function SignInPanel() {
     } finally {
       setBusy(false);
     }
-  }, [email, password, emailMode]);
+  }, [email, password, confirmPassword, emailMode]);
 
   const showChoose = mode === 'choose';
 
@@ -204,9 +211,31 @@ export default function SignInPanel() {
               value={password}
               onChangeText={setPassword}
               editable={!busy}
-              onSubmitEditing={handleEmailSubmit}
-              returnKeyType={emailMode === 'sign-in' ? 'go' : 'done'}
+              onSubmitEditing={() => {
+                if (emailMode === 'sign-up') confirmInputRef.current?.focus();
+                else handleEmailSubmit();
+              }}
+              returnKeyType={emailMode === 'sign-in' ? 'go' : 'next'}
             />
+            {emailMode === 'sign-up' && (
+              <TextInput
+                ref={confirmInputRef}
+                style={[styles.input, styles.inputPassword]}
+                placeholder="Confirm password"
+                placeholderTextColor={colors.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                secureTextEntry
+                textContentType="password"
+                autoComplete="password"
+                passwordRules=""
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                editable={!busy}
+                onSubmitEditing={handleEmailSubmit}
+                returnKeyType="done"
+              />
+            )}
 
             <AnimatedPressable
               onPress={handleEmailSubmit}
@@ -227,6 +256,7 @@ export default function SignInPanel() {
               <Pressable
                 onPress={() => {
                   setEmailMode(emailMode === 'sign-in' ? 'sign-up' : 'sign-in');
+                  setConfirmPassword('');
                   setError(null);
                   setInfo(null);
                 }}
