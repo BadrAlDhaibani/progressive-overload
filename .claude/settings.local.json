@@ -23,7 +23,12 @@
       "Bash(xargs -0 grep -l \"proverload\\\\|Proverload\\\\|ProverLoad\\\\|progressive-overload\\\\|Progressive Overload\")",
       "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
       "Bash(find D:\\\\Progressive Overload app\\\\progressive-overload *)",
-      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
+      "Bash(gh pr *)",
+      "Bash(git fetch *)",
+      "Bash(git worktree *)",
+      "Bash(git diff *)",
+      "Bash(git *)"
     ]
   }
 }

@@ -860,15 +860,39 @@ First time: EAS will create the app in App Store Connect if it doesn't exist. Sa
 
 ### S6.1: Privacy Policy
 
-Host a simple privacy policy page (Provolone collects zero data):
+⚠️ **Rewritten after PR #1.** Provolone is offline-first, but the optional Friends/Chat/Leaderboard tier (Phase 1.7) does transmit and store data on Supabase when the user signs in. The policy must reflect that honestly.
+
+Draft to host at your chosen URL:
 
 > **Privacy Policy for Provolone**
 >
-> Provolone is an offline workout tracker. All workout data is stored locally on your device using SQLite and never leaves your device. Provolone does not collect, transmit, or share any personal data. No third-party analytics, advertising, or tracking services are used. Delete all data by uninstalling the app.
+> _Last updated: [YYYY-MM-DD]_
 >
-> Contact: [your email]
+> **Overview.** Provolone has two sides. The core workout logger (sets, reps, weight, templates, history) works fully offline — that data lives in a local SQLite database on your device and is never sent anywhere. An optional Friends tier (leaderboard, 1:1 chat) is only used if you sign in, and its data is stored on servers operated by Supabase, Inc.
+>
+> **Data we collect (only if you sign in).**
+> - **Account info:** email address (for email sign-in) or your Apple-issued relay identifier (for Sign in with Apple).
+> - **Profile:** a username and an optional display name that you choose.
+> - **Workout aggregates:** your weekly total workout volume (lbs × reps summed), used to rank you on the weekly leaderboard. Individual sets, exercises, and templates are **not** uploaded — only the weekly sum.
+> - **Chat data:** the user IDs of the parties in each chat and the text of every message you send or receive.
+>
+> We do not collect: device identifiers, advertising IDs, location, contacts, photos, health data, or analytics.
+>
+> **Where it's stored.** On Supabase (Postgres + Realtime), region [e.g. us-east-1]. Row-Level Security is enabled on every table so only you and the parties you chat with can read your data.
+>
+> **Third parties.** Supabase, Inc. (auth + database + realtime). Apple, Inc. if you use Sign in with Apple. No analytics, advertising, or tracking SDKs are included in the app.
+>
+> **Retention & deletion.** Local workout data is removed when you uninstall the app. Signed-in data (profile, weekly stats, chats, messages) remains on Supabase until you request deletion by emailing [your email]. We will delete your `profiles`, `weekly_stats`, `chat_members`, and `messages` rows within 30 days. _(An in-app delete-account button is planned before 1.0 — see Phase 1.7 Known Gaps.)_
+>
+> **Children.** Provolone is not directed at children under 13 and we do not knowingly collect data from them.
+>
+> **Changes.** If this policy changes we will update the "Last updated" date at the top.
+>
+> **Contact:** [your email]
 
-**Hosting options** (free): GitHub Pages, Notion public page, any static host.
+**Hosting options** (free): GitHub Pages, Notion public page, any static host. Whichever you pick, the URL has to be publicly reachable (no login wall) — Apple's reviewer will click it.
+
+**Before S7:** ship an in-app account-deletion flow (Apple guideline 5.1.1(v) requires it for any app with account creation). Until then, the email-request path above is the fallback and must be genuinely honored.
 
 ### S6.2: App Store Connect Metadata
 
@@ -892,13 +916,15 @@ Provolone tracks your gym workouts so you always know what to beat next time.
 - Workout templates for your favorite routines
 - Full exercise library organized by muscle group
 - Create custom exercises and templates
-- View complete workout history
+- View complete workout history, per-exercise progression
 
-All data stays on your device. No accounts, no cloud, no subscriptions.
+The core is fully offline — your workout data lives on your device. No subscriptions, no ads.
+
+Optional: sign in to climb a weekly volume leaderboard and chat 1:1 with gym friends. Skippable — the app works without an account.
 ```
 
 **Keywords** (100 char max):
-`workout,tracker,gym,progressive,overload,strength,training,lifting,weightlifting,fitness,log,sets`
+`workout,tracker,gym,progressive,overload,strength,lifting,weightlifting,fitness,log,sets,friends`
 
 ### S6.4: Screenshots
 
@@ -915,7 +941,23 @@ All data stays on your device. No accounts, no cloud, no subscriptions.
 
 ### S6.5: App Privacy Declaration
 
-In App Store Connect → App Privacy → select **"Data Not Collected"**. This is accurate — Provolone is fully offline.
+⚠️ **Rewritten after PR #1.** "Data Not Collected" is no longer accurate. Declare only what the optional sign-in tier actually collects:
+
+| Category | Type | Purpose | Linked to user? | Used to track? |
+|---|---|---|---|---|
+| Contact Info | Email Address | App Functionality (authentication) | Yes | No |
+| User Content | Other User Content (chat messages) | App Functionality (1:1 messaging) | Yes | No |
+| Identifiers | User ID (Supabase UUID) | App Functionality | Yes | No |
+
+**Do NOT declare** (not collected by the app): device IDs / advertising IDs, location, health & fitness, photos, contacts, browsing history, diagnostics, analytics, crash data.
+
+**"Used to track you?"** No across the board — Provolone has no ad SDKs and doesn't match user data with third-party datasets.
+
+**"Data used to contact you?"** No — the email is only used to authenticate. No marketing emails.
+
+Username and display name are user-provided in-app; Apple's form covers them under "Name" but they're arguably part of user content since they exist only to identify the user to their friends. Declare under **Contact Info → Name** to be safe.
+
+If you keep the "leaderboard aggregates" (weekly_stats) — those are derived numbers (total volume) not personal attributes, and Apple's taxonomy doesn't have a clean slot for them. They're covered implicitly under the User ID identifier because they're keyed by it.
 
 ### S6.6: Update `eas.json` with real credentials
 
@@ -924,12 +966,32 @@ Fill in the submit placeholders:
 - `ascAppId`: Found in App Store Connect → App Information → Apple ID (numeric)
 - `appleTeamId`: Found at developer.apple.com → Membership → Team ID
 
-### S6.7: Review Notes (optional)
+### S6.7: Review Notes
+
+⚠️ **Rewritten after PR #1.** Reviewers will hit the Friends tab and need to know (a) the app is usable without an account and (b) how to exercise the sign-in path. Apple typically asks for a demo account whenever account creation exists, even optionally.
 
 ```
-Provolone is an offline workout tracker. No login required.
-Tap "Start Workout" to begin. Add exercises, log sets, and complete the workout.
+Provolone is an offline workout tracker. The core logging flow (Home, History,
+Exercises, Start Workout) does not require an account — reviewers can exercise
+the full primary experience by tapping "Start Workout" on Home.
+
+The Friends tab is optional and account-gated. To review it:
+  1. Tap the Friends tab.
+  2. Either create an account with email + password, or use the demo account:
+       email: [demo@example.com]
+       password: [demo password]
+  3. The Leaderboard shows weekly workout volume across signed-in users.
+  4. The Chats segment → "Add Friends" → "Search by username" opens a chat
+     with any other signed-in user by their handle.
+
+Account deletion: [describe the in-app flow once implemented, OR
+"email <your-support-email> — see privacy policy" until it ships].
+
+Data policy: the core logger stores nothing on servers. Only the Friends tier
+transmits data (Supabase). See the linked privacy policy for the full list.
 ```
+
+**Before submitting:** create the demo account yourself, give it a recognizable username (e.g. `reviewer`), seed it with one or two finished workouts so the leaderboard isn't empty, and paste the real credentials into the block above.
 
 **Test**: Privacy policy URL is live. All App Store Connect fields filled (no red warnings). Screenshots uploaded. App Privacy completed.
 
@@ -1020,7 +1082,7 @@ After TestFlight testing (S5), publishing was paused to add more features and ve
 
 | Batch | Status | Description |
 |-------|--------|-------------|
-| F7 | Pending | Delete exercises from library (cascade) |
+| F7 | Done | Delete exercises from library (cascade) |
 
 ---
 
@@ -1045,6 +1107,196 @@ After TestFlight testing (S5), publishing was paused to add more features and ve
 - Cascade strategy lives in app-level transaction (no schema migration) since SQLite can't add `ON DELETE CASCADE` to existing FKs without recreating the tables.
 
 **Known limitation:** If the user is mid-workout and somehow deletes an exercise that's in their current session, completing a new set will fail the FK constraint on write. The active workout is presented as `fullScreenModal`, so this shouldn't be reachable via normal navigation — not solved in this batch.
+
+---
+---
+
+# Phase 1.7: Social Layer (PR #1)
+
+## Context
+
+Collaborator-authored PR #1 (`slop_nuke` branch, `710d2be` merge commit, 2026-04-21) adds an opt-in Supabase-backed social tier. The app remains fully usable signed out — all core logging, history, templates, and exercise management still work without an account. This materially changes the privacy posture of the app and forces a rewrite of the S6 App Store metadata (privacy policy, App Privacy declaration, description, review notes) — see Phase 2 / S6 below.
+
+## What shipped
+
+**Infrastructure**
+- Supabase client (`lib/supabase.ts`) reading `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY` from `.env` (gitignored).
+- `supabase/migrations/0001_friends_schema.sql` — creates `profiles`, `weekly_stats`, `chats`, `chat_members`, `messages`. RLS enabled on every table.
+- `store/useAuthStore.ts` — session + profile state.
+- `lib/social/*` — data access for profiles, chats, leaderboard, sync.
+
+**User-facing**
+- 4th tab: **Friends** (`components/screens/FriendsContent.tsx` with `SegmentedControl` switching Leaderboard ⇄ Chats).
+- Sign-in panel: Apple OAuth + email/password sign-up (with confirm-password) / sign-in.
+- Weekly leaderboard (`weekly_stats` rows written fire-and-forget from `syncWeeklyStats()` on workout finish).
+- 1:1 realtime chat (`chat/[id].tsx`, `chat/new.tsx`) with message bubbles and an input composer.
+- Settings: claim/change username, sign out (`settings/username.tsx`).
+- Add Friends chooser (`friends/add.tsx`) with search-by-username and a share-link card (`provolone://chat/new?u=<me>`).
+
+## Review batches (landed before merge)
+
+Tracked in `~/.claude/plans/my-friend-created-a-deep-tiger.md`. All six review batches passed user testing before push/merge.
+
+| Batch | Commit | What it covered |
+|---|---|---|
+| Review fixes | `63838a3` | Moved Supabase creds to env; added `.env` to `.gitignore`; reverted `ios`/`android` npm scripts; raw `Pressable` → `AnimatedPressable` across SignInPanel/ChatsView/MessageInput; `CLAUDE.md` documented the social layer and auth-optional contract. |
+| Safe-area + spinner | `0812aac` | Added `SafeAreaProvider` in root layout; `chat/[id]` now respects bottom edge; `ScreenHeader` top padding; split `refreshing` vs `loading` in `ChatsView`. |
+| Auth UX | `9a47c5d` | Confirm-password field on sign-up; `settings/username` keyboard dismissal + title "Account"; `ScreenHeader` horizontal padding; `SegmentedControl` strict-mode fix. |
+| Add Friends chooser | `2108cc2` | "Add by username" → "Add Friends" routes to new `friends/add` modal; share-link card with Copy + Share; `/chat/new?u=` pre-fill with keyboard suppressed. |
+
+## Known gaps (not blocking)
+
+- **No in-app account deletion.** A user can sign out but cannot delete their row in `profiles` / `auth.users` from the app. Apple will require a deletion path for any app with account creation (guideline 5.1.1(v)). Needs a dedicated batch before S7 — either an in-app flow that calls a Supabase edge function, or a contact-email path documented in the privacy policy.
+- **No avatar upload flow** despite `avatar_url` on the profile schema — display-only for now.
+- **Apple OAuth needs a signing secret** (`scripts/apple-client-secret.mjs`) configured on Supabase before Apple sign-in works in production — worth verifying during S6/S7.
+
+---
+---
+
+# Phase 1.8: Pre-submission requirements
+
+## Context
+
+Pre-conditions flagged in Phase 1.7 that must land before S6/S7. Currently one batch: in-app account deletion (Apple guideline 5.1.1(v) blocker).
+
+## Progress
+
+| Batch | Status | Description |
+|-------|--------|-------------|
+| D1 | Pending | In-app account deletion (Supabase + Apple token revoke) |
+
+---
+
+## D1: In-app account deletion
+
+**Goal**: A signed-in user can, from within the app, permanently delete their Supabase account and all data tied to it — profile, weekly stats, chat memberships, and the messages they authored. If they signed in with Apple, the app must also revoke the Apple token (Apple guideline 4.8). Satisfies the 5.1.1(v) blocker that's holding up App Store submission.
+
+**Why it needs a server function, not just client SQL:**
+- The cascade is already set up at the schema level: `public.profiles.id references auth.users(id) on delete cascade`, and all child tables (`weekly_stats`, `chat_members`, `messages`) cascade off `profiles.id`. So deleting one row from `auth.users` takes the rest of the user's data with it.
+- `auth.users` cannot be written from the client with the anon key — it requires the Supabase **service role** key, which must never ship in the app bundle.
+- Therefore deletion has to run server-side, in a Supabase Edge Function that holds the service role key as a secret.
+- The same function is the right place to revoke the Apple refresh token, since that also needs a server-side signed JWT.
+
+**Architecture (recommended approach):**
+
+```
+client (signed-in)
+  │  supabase.functions.invoke('delete-account')
+  │    ↓ authenticated request with user's JWT
+  ▼
+Supabase Edge Function: delete-account
+  1. verify caller JWT → get userId + provider + refresh_token
+  2. if provider === 'apple': sign client secret, POST to
+     https://appleid.apple.com/auth/revoke (token, client_id, client_secret)
+  3. supabase.auth.admin.deleteUser(userId)
+  4. return 204
+  │
+  ▼
+Postgres cascades
+  profiles → weekly_stats, chat_members, messages (sender_id)
+  chat_members delete → cleanup_empty_chat trigger drops the chat if the last
+                        member just left (prevents orphan 1:1 chats)
+```
+
+### Changes
+
+**New SQL migration — `supabase/migrations/0002_delete_account.sql`:**
+- `cleanup_empty_chat()` trigger function (`security definer`, `set search_path = public`): after a `chat_members` delete, if no rows remain for that `chat_id`, delete the `chats` row. Prevents orphaned 1:1 chats when one party deletes their account.
+- Drop/recreate trigger `cleanup_empty_chat_trg` on `chat_members` for each row after delete.
+- No policy changes — RLS already prevents reading other users' chats; this cleanup runs as `security definer`.
+
+**New Edge Function — `supabase/functions/delete-account/index.ts` (Deno):**
+- Reads `Authorization: Bearer <jwt>` from the request.
+- Calls `supabase.auth.getUser(jwt)` with an anon client to resolve `userId` and inspect `user.app_metadata.provider` + `identities` for the Apple refresh token.
+- If `provider === 'apple'`:
+  - Generate the Apple client secret JWT on the fly (port of `scripts/apple-client-secret.mjs` to Deno — uses `crypto.subtle` / `jose`). Inputs come from function secrets: `APPLE_TEAM_ID`, `APPLE_KEY_ID`, `APPLE_SERVICES_ID`, `APPLE_PRIVATE_KEY_P8` (multi-line secret).
+  - `POST https://appleid.apple.com/auth/revoke` with `token`, `client_id`, `client_secret`, `token_type_hint=refresh_token`. Apple returns 200 with empty body on success; log + continue on 4xx (best-effort — don't block account deletion if Apple revoke fails).
+- Create a service-role admin client using `SUPABASE_SERVICE_ROLE_KEY` secret + `SUPABASE_URL`.
+- Call `admin.auth.admin.deleteUser(userId)`. This cascades through the schema.
+- Return `204 No Content` on success, `4xx/5xx` with a short JSON error on failure.
+- CORS: respond to `OPTIONS` with the usual headers so `functions.invoke` works from RN.
+
+**Deploy steps (one-time, manual):**
+```
+npm install -g supabase
+supabase login
+supabase link --project-ref <your-ref>
+supabase functions deploy delete-account
+supabase secrets set \
+  APPLE_TEAM_ID=T88Y585VZ3 \
+  APPLE_KEY_ID=463T98CDYR \
+  APPLE_SERVICES_ID=app.provolone.signin \
+  APPLE_PRIVATE_KEY_P8="$(cat AuthKey_463T98CDYR.p8)"
+# SUPABASE_SERVICE_ROLE_KEY and SUPABASE_URL are injected by the platform.
+# Run the migration in the SQL editor:
+#   (paste contents of supabase/migrations/0002_delete_account.sql)
+```
+
+**Client — `store/useAuthStore.ts`:**
+- Add `deleteAccount: () => Promise<void>` action.
+- Implementation:
+  ```ts
+  deleteAccount: async () => {
+    if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
+    const { error } = await supabase.functions.invoke('delete-account', {
+      method: 'POST',
+    });
+    if (error) throw error;
+    await supabase.auth.signOut();
+    set({ status: 'signed-out', userId: null, profile: null });
+  }
+  ```
+- No `onAuthStateChange` rewiring needed — the existing listener already handles sign-out.
+
+**Client — `app/settings/username.tsx`:**
+- Add a **Delete account** button below the existing Sign Out button. Same `AnimatedPressable` shape, `colors.error` tint, but outlined rather than filled so it doesn't compete visually with Sign Out.
+- `onPress` handler: single `Alert.alert` with destructive style — Apple's guidance is one clear confirmation, not two.
+  - Title: `Delete account?`
+  - Message: `This permanently deletes your profile, chats, messages, and leaderboard stats. Your local workout data stays on this device. This cannot be undone.`
+  - Buttons: `Cancel` (default), `Delete` (destructive) → calls `await deleteAccount()` inside a local `busy` flag.
+- On success: `router.back()` → Friends tab renders `SignInPanel` because `status === 'signed-out'`.
+- On failure: show the error in a second `Alert.alert` — do **not** sign the user out if the server call failed.
+- Disable both Sign Out and Delete while `busy`.
+
+### Reused building blocks (do not hand-roll)
+
+| Existing piece | Path | Role |
+|---|---|---|
+| `AnimatedPressable` | `components/AnimatedPressable.tsx` | Delete button |
+| `useAuthStore` | `store/useAuthStore.ts` | Extend with `deleteAccount` |
+| `supabase` client | `lib/supabase.ts` | `functions.invoke` handles auth header |
+| Apple client-secret signing reference | `scripts/apple-client-secret.mjs` | Port the ES256 JWT generation to Deno for the Edge Function |
+| Schema cascade | `supabase/migrations/0001_friends_schema.sql` (all `on delete cascade`) | Deletion fan-out; don't re-delete children in code |
+
+### Decisions & open points
+
+- **Single confirmation, not double.** Apple's reviewer docs accept one clear destructive confirmation with an irreversible warning.
+- **Local workout data is untouched** — the copy says so explicitly. Uninstalling is still the way to wipe the local SQLite DB.
+- **Apple revoke is best-effort.** If Apple's endpoint 5xx's, we still delete the Supabase user so the user isn't left in a half-deleted state. The trade-off: Apple's servers may keep the app's permission until the user revokes manually at appleid.apple.com. This is the standard Supabase pattern.
+- **No grace period / soft delete.** Apple discourages it; schema doesn't support it without extra work. Out of scope.
+- **No email confirmation step.** Adds friction without much benefit; the Supabase user is authenticated at call time, which is the identity proof we need.
+
+### Test plan
+
+**Backend (Supabase SQL editor + function logs):**
+1. Run migration 0002 in SQL editor — `cleanup_empty_chat_trg` appears under the `chat_members` table.
+2. Deploy the edge function. Inspect logs from the dashboard as the client triggers it.
+3. Set function secrets and verify `supabase secrets list` shows all four Apple vars plus the Supabase ones.
+
+**End-to-end (two accounts on two devices, or simulator + device):**
+1. Create email account A. Have it exchange a few messages with account B in a 1:1 chat. Confirm both `weekly_stats` and `messages` rows exist in the dashboard.
+2. On device A, Friends → cog → **Delete account** → confirm in the Alert.
+3. Expected:
+   - Modal dismisses; Friends tab returns to the sign-in panel on device A.
+   - In the Supabase dashboard: A's `auth.users` row is gone, A's `profiles` is gone, A's `weekly_stats` is gone, every `chat_members` row with `user_id = A` is gone, every `messages` row with `sender_id = A` is gone, and the 1:1 chat row with A+B is gone (trigger fired when A's last `chat_members` row deleted).
+   - Device B: the chat disappears from B's Chats list on next refresh — no stale "last message" from a ghost user.
+   - Local SQLite workout data on device A is intact (start a workout, see past templates/history).
+4. Repeat with an Apple-sign-in account C. Inspect the edge function logs to confirm the Apple revoke call was made and returned 200. After deletion, sign in again with Apple — Apple should treat it as a fresh authorization consent.
+5. Negative path: disable network, tap Delete → Alert should surface a clear error and user must remain signed in.
+
+### Dependency note
+
+Do this before S6.5 (App Privacy declaration) and S6.7 (Review Notes) are finalized — those sections currently promise either an in-app flow or an email fallback; shipping D1 lets us simplify both sections to point at the in-app flow.
 
 **Test**:
 1. Long-press a custom exercise with no usage → Alert title `Delete 'X'?`, message `This cannot be undone.` → Delete removes it from the list.
