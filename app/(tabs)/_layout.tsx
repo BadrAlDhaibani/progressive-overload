@@ -9,6 +9,7 @@ import { fonts } from '@/constants/typography';
 import HomeContent from '@/components/screens/HomeContent';
 import HistoryContent from '@/components/screens/HistoryContent';
 import ExercisesContent from '@/components/screens/ExercisesContent';
+import FriendsContent from '@/components/screens/FriendsContent';
 
 type TabConfig = {
   title: string;
@@ -20,6 +21,7 @@ const tabs: TabConfig[] = [
   { title: 'Home', icon: 'home-outline', Component: HomeContent },
   { title: 'History', icon: 'time-outline', Component: HistoryContent },
   { title: 'Exercises', icon: 'barbell-outline', Component: ExercisesContent },
+  { title: 'Friends', icon: 'people-outline', Component: FriendsContent },
 ];
 
 export default function TabLayout() {

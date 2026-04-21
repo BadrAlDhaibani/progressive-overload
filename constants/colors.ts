@@ -1,38 +1,48 @@
 import { useColorScheme } from 'react-native';
 
-const lightColors = {
-  // Backgrounds
+export type Colors = {
+  bg: string;
+  bgCard: string;
+  bgMuted: string;
+  primary: string;
+  primaryLight: string;
+  primaryMedium: string;
+  primaryDark: string;
+  text: string;
+  textSecondary: string;
+  textMuted: string;
+  border: string;
+  divider: string;
+  success: string;
+  error: string;
+  textOnPrimary: string;
+  isDark: boolean;
+};
+
+const lightColors: Colors = {
   bg: '#ffffff',
   bgCard: '#f9fafb',
   bgMuted: '#f3f4f6',
 
-  // Rose accent (primary)
   primary: '#f43f5e',
   primaryLight: '#ffe4e6',
   primaryMedium: '#fb7185',
   primaryDark: '#e11d48',
 
-  // Text
   text: '#111827',
   textSecondary: '#6b7280',
   textMuted: '#9ca3af',
 
-  // Borders & dividers
   border: '#e5e7eb',
   divider: '#f3f4f6',
 
-  // Semantic
   success: '#22c55e',
   error: '#ef4444',
 
-  // Contrast text on primary bg
   textOnPrimary: '#ffffff',
 
-  // Theme flag
   isDark: false,
-} as const;
-
-export type Colors = typeof lightColors;
+};
 
 const darkColors: Colors = {
   bg: '#121212',

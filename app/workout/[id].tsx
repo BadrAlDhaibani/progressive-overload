@@ -20,6 +20,7 @@ import AnimatedScreen from '@/components/AnimatedScreen';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import ExerciseCard from '@/components/ExerciseCard';
+import { syncWeeklyStats } from '@/lib/social/sync';
 
 function formatElapsed(seconds: number): string {
   const m = Math.floor(seconds / 60);
@@ -56,6 +57,7 @@ export default function WorkoutScreen() {
     const doFinish = () => {
       const id = workoutId;
       finish();
+      syncWeeklyStats();
       router.replace(`/workout/summary?workoutId=${id}`);
     };
 
