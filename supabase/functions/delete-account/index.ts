@@ -10,6 +10,11 @@
 //   SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY  (auto-injected)
 // Required Apple secrets (set via `supabase secrets set`):
 //   APPLE_TEAM_ID, APPLE_KEY_ID, APPLE_SERVICES_ID, APPLE_PRIVATE_KEY_P8
+//
+// Deployed with verify_jwt=false because this project's auth uses ES256
+// (asymmetric JWT signing), which the edge function gateway's pre-verify
+// step does not support. We validate the caller's JWT in code below via
+// admin.auth.getUser(jwt) and 401 on missing/invalid tokens.
 
 import { createClient } from '@supabase/supabase-js';
 import { importPKCS8, SignJWT } from 'jose';
@@ -97,14 +102,14 @@ Deno.serve(async (req) => {
     if (!jwt) return json(401, { error: 'missing bearer token' });
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-    const anon = createClient(supabaseUrl, anonKey, {
+    const admin = createClient(supabaseUrl, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
-    const { data: userData, error: getUserErr } = await anon.auth.getUser(jwt);
+    const { data: userData, error: getUserErr } = await admin.auth.getUser(jwt);
     if (getUserErr || !userData?.user) {
+      console.warn('getUser rejected JWT', getUserErr);
       return json(401, { error: 'invalid token' });
     }
     const user = userData.user;
@@ -123,9 +128,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    const admin = createClient(supabaseUrl, serviceKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
     const { error: deleteErr } = await admin.auth.admin.deleteUser(user.id);
     if (deleteErr) {
       console.error('admin.deleteUser failed', deleteErr);

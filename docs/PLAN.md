@@ -1164,7 +1164,7 @@ Pre-conditions flagged in Phase 1.7 that must land before S6/S7. Currently one b
 | Batch | Status | Description |
 |-------|--------|-------------|
 | D1a | Done | In-app account deletion — backend (migration 0002 + delete-account edge function + cleanup_empty_chat trigger) |
-| D1b | Pending | In-app account deletion — client wiring (useAuthStore.deleteAccount + Delete UI in app/settings/username.tsx) |
+| D1b | Done | In-app account deletion — client wiring + backend deploy. Edge function deployed with `verify_jwt: false` because this project's auth uses ES256 (asymmetric) JWTs, which the gateway can't pre-verify; the function validates the bearer token in code via `admin.auth.getUser`. |
 
 ---
 

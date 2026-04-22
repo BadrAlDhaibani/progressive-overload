@@ -1,7 +1,31 @@
 import { create } from 'zustand';
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { ensureProfile, getProfile } from '@/lib/social/profiles';
 import type { Profile } from '@/lib/social/types';
+
+async function formatInvokeError(error: unknown): Promise<string> {
+  if (!(error instanceof Error)) return 'Unknown error';
+  let detail = error.message || 'Unknown error';
+  if (!(error instanceof FunctionsHttpError)) return detail;
+  const res = error.context as Response | undefined;
+  if (!res) return detail;
+  if (typeof res.status === 'number') detail += ` (HTTP ${res.status})`;
+  try {
+    const body = await res.text();
+    if (!body) return detail;
+    try {
+      const parsed = JSON.parse(body);
+      if (parsed?.error) detail += ` — ${parsed.error}`;
+      if (parsed?.detail) detail += ` (${parsed.detail})`;
+    } catch {
+      if (body.length < 300) detail += ` — ${body}`;
+    }
+  } catch {
+    // body unreadable; fall back to status only
+  }
+  return detail;
+}
 
 type AuthStatus = 'loading' | 'signed-out' | 'signed-in';
 
@@ -15,6 +39,7 @@ interface AuthState {
   setSession: (userId: string | null, displayName: string | null) => Promise<void>;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => ({
@@ -68,5 +93,14 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   signOut: async () => {
     if (isSupabaseConfigured) await supabase.auth.signOut();
     set({ status: 'signed-out', userId: null, profile: null });
+  },
+
+  deleteAccount: async () => {
+    if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
+    const { error } = await supabase.functions.invoke('delete-account', {
+      method: 'POST',
+    });
+    if (error) throw new Error(await formatInvokeError(error));
+    await get().signOut();
   },
 }));

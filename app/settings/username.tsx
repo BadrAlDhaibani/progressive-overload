@@ -36,11 +36,15 @@ export default function UsernameScreen() {
   const profile = useAuthStore((s) => s.profile);
   const refresh = useAuthStore((s) => s.refreshProfile);
   const signOut = useAuthStore((s) => s.signOut);
+  const deleteAccount = useAuthStore((s) => s.deleteAccount);
 
   const [value, setValue] = useState(profile?.username ?? '');
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [savingBusy, setSavingBusy] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
   const [pendingColor, setPendingColor] = useState<string | null | undefined>(undefined);
+
+  const busy = savingBusy || deleteBusy;
 
   const savedColor = profile?.profile_color ?? null;
   const currentColor = pendingColor !== undefined ? pendingColor : savedColor;
@@ -51,7 +55,7 @@ export default function UsernameScreen() {
 
   const handleSave = useCallback(async () => {
     if (!profile) return;
-    setBusy(true);
+    setSavingBusy(true);
     setError(null);
     let usernameError: string | null = null;
     let colorError: string | null = null;
@@ -82,13 +86,41 @@ export default function UsernameScreen() {
       }
       router.back();
     } finally {
-      setBusy(false);
+      setSavingBusy(false);
     }
   }, [profile, refresh, router, value, usernameDirty, colorDirty, pendingColor]);
 
   const handlePickColor = useCallback((color: string | null) => {
     setPendingColor(color === savedColor ? undefined : color);
   }, [savedColor]);
+
+  const handleDeleteAccount = useCallback(() => {
+    Alert.alert(
+      'Delete account?',
+      'This permanently deletes your profile, chats, messages, and leaderboard stats. Your local workout data stays on this device. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleteBusy(true);
+            try {
+              await deleteAccount();
+              router.back();
+            } catch (e) {
+              Alert.alert(
+                'Could not delete account',
+                e instanceof Error ? e.message : 'Please try again.',
+              );
+            } finally {
+              setDeleteBusy(false);
+            }
+          },
+        },
+      ],
+    );
+  }, [deleteAccount, router]);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -174,6 +206,14 @@ export default function UsernameScreen() {
               style={styles.signOutRow}
             >
               <Text style={styles.signOutText}>Sign out</Text>
+            </AnimatedPressable>
+
+            <AnimatedPressable
+              onPress={handleDeleteAccount}
+              disabled={busy}
+              style={styles.deleteAccountRow}
+            >
+              <Text style={styles.deleteAccountText}>Delete account</Text>
             </AnimatedPressable>
           </View>
         </TouchableWithoutFeedback>
@@ -275,13 +315,27 @@ const createStyles = (colors: Colors) =>
       flex: 1,
     },
     signOutRow: {
-      marginBottom: 24,
+      marginBottom: 12,
       paddingVertical: 14,
       borderRadius: 12,
       backgroundColor: colors.bgMuted,
       alignItems: 'center',
     },
     signOutText: {
+      color: colors.error,
+      fontFamily: fonts.semiBold,
+      fontSize: 15,
+    },
+    deleteAccountRow: {
+      marginBottom: 24,
+      paddingVertical: 14,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.error,
+      backgroundColor: 'transparent',
+      alignItems: 'center',
+    },
+    deleteAccountText: {
       color: colors.error,
       fontFamily: fonts.semiBold,
       fontSize: 15,

@@ -28,7 +28,21 @@
       "Bash(git fetch *)",
       "Bash(git worktree *)",
       "Bash(git diff *)",
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(npx supabase *)",
+      "Bash(supabase --version)",
+      "Bash(claude mcp *)",
+      "Bash(npx skills *)",
+      "mcp__supabase__list_edge_functions",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__get_logs",
+      "mcp__supabase__deploy_edge_function"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }
