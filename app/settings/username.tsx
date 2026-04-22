@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import {
+  Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -12,13 +13,19 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-import { useColors, type Colors } from '@/constants/colors';
+import { AVATAR_PALETTE, useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import ScreenHeader from '@/components/friends/ScreenHeader';
 import AnimatedPressable from '@/components/AnimatedPressable';
+import Avatar from '@/components/friends/Avatar';
 import { useAuthStore } from '@/store/useAuthStore';
-import { updateUsername } from '@/lib/social/profiles';
+import { updateProfileColor, updateUsername } from '@/lib/social/profiles';
 import { isValidUsername, normalizeUsername } from '@/lib/social/username';
+
+const COLOR_OPTIONS: Array<{ key: string; color: string | null }> = [
+  { key: 'default', color: null },
+  ...AVATAR_PALETTE.map((c) => ({ key: c, color: c })),
+];
 
 export default function UsernameScreen() {
   const colors = useColors();
@@ -33,24 +40,55 @@ export default function UsernameScreen() {
   const [value, setValue] = useState(profile?.username ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [pendingColor, setPendingColor] = useState<string | null | undefined>(undefined);
 
-  const dirty = normalizeUsername(value) !== (profile?.username ?? '');
-  const canSave = dirty && isValidUsername(normalizeUsername(value)) && !busy;
+  const savedColor = profile?.profile_color ?? null;
+  const currentColor = pendingColor !== undefined ? pendingColor : savedColor;
+  const usernameDirty = normalizeUsername(value) !== (profile?.username ?? '');
+  const colorDirty = pendingColor !== undefined && pendingColor !== savedColor;
+  const usernameValid = !usernameDirty || isValidUsername(normalizeUsername(value));
+  const canSave = (usernameDirty || colorDirty) && usernameValid && !busy;
 
   const handleSave = useCallback(async () => {
     if (!profile) return;
     setBusy(true);
     setError(null);
+    let usernameError: string | null = null;
+    let colorError: string | null = null;
     try {
-      await updateUsername(profile.id, value);
+      if (usernameDirty) {
+        try {
+          await updateUsername(profile.id, value);
+        } catch (e: any) {
+          usernameError = e?.message ?? 'Could not save username.';
+        }
+      }
+      if (colorDirty) {
+        try {
+          await updateProfileColor(profile.id, pendingColor ?? null);
+        } catch (e: any) {
+          colorError = e?.message ?? 'Please try again.';
+        }
+      }
       await refresh();
+      if (usernameError) {
+        setError(usernameError);
+        if (colorError) Alert.alert('Could not save color', colorError);
+        return;
+      }
+      if (colorError) {
+        Alert.alert('Could not save color', colorError);
+        return;
+      }
       router.back();
-    } catch (e: any) {
-      setError(e?.message ?? 'Could not save.');
     } finally {
       setBusy(false);
     }
-  }, [profile, refresh, router, value]);
+  }, [profile, refresh, router, value, usernameDirty, colorDirty, pendingColor]);
+
+  const handlePickColor = useCallback((color: string | null) => {
+    setPendingColor(color === savedColor ? undefined : color);
+  }, [savedColor]);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -90,6 +128,41 @@ export default function UsernameScreen() {
               <Text style={styles.hint}>3–24 chars. Letters, numbers, and underscores.</Text>
             )}
 
+            <View style={styles.colorSection}>
+              <Text style={styles.label}>Profile color</Text>
+              <View style={styles.previewRow}>
+                <Avatar
+                  seed={profile?.id ?? ''}
+                  label={profile?.username}
+                  size={56}
+                  color={currentColor}
+                />
+              </View>
+              <View style={styles.swatchRow}>
+                {COLOR_OPTIONS.map(({ key, color }) => {
+                  const isSelected = currentColor === color;
+                  const isDefault = color === null;
+                  return (
+                    <AnimatedPressable
+                      key={key}
+                      onPress={() => handlePickColor(color)}
+                      disabled={busy}
+                      style={[styles.swatchWrap, isSelected && styles.swatchWrapSelected]}
+                    >
+                      <View
+                        style={[
+                          styles.swatch,
+                          isDefault
+                            ? styles.swatchDefault
+                            : { backgroundColor: color as string },
+                        ]}
+                      />
+                    </AnimatedPressable>
+                  );
+                })}
+              </View>
+            </View>
+
             <View style={styles.spacer} />
 
             <AnimatedPressable
@@ -97,6 +170,7 @@ export default function UsernameScreen() {
                 signOut();
                 router.back();
               }}
+              disabled={busy}
               style={styles.signOutRow}
             >
               <Text style={styles.signOutText}>Sign out</Text>
@@ -161,6 +235,41 @@ const createStyles = (colors: Colors) =>
       fontFamily: fonts.regular,
       color: colors.textMuted,
       marginTop: 8,
+    },
+    colorSection: {
+      marginTop: 32,
+    },
+    previewRow: {
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    swatchRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
+    },
+    swatchWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2.5,
+      borderColor: 'transparent',
+    },
+    swatchWrapSelected: {
+      borderColor: colors.text,
+    },
+    swatch: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+    },
+    swatchDefault: {
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: colors.textMuted,
+      backgroundColor: 'transparent',
     },
     spacer: {
       flex: 1,

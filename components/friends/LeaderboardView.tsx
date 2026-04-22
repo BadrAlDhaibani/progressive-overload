@@ -64,6 +64,7 @@ export default function LeaderboardView() {
         </View>
       ) : (
         <FlatList
+          style={styles.flex}
           data={sorted}
           keyExtractor={(row) => row.user_id}
           contentContainerStyle={styles.list}
@@ -94,6 +95,9 @@ const createStyles = (colors: Colors) =>
     container: {
       flex: 1,
     },
+    flex: {
+      flex: 1,
+    },
     metricWrap: {
       paddingHorizontal: 16,
       paddingBottom: 12,
@@ -101,6 +105,7 @@ const createStyles = (colors: Colors) =>
     list: {
       paddingHorizontal: 16,
       paddingBottom: 32,
+      flexGrow: 1,
     },
     state: {
       flex: 1,

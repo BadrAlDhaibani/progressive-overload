@@ -12,7 +12,7 @@ export async function fetchLeaderboard(metric: LeaderboardMetric): Promise<Leade
   const column = COLUMN_BY_METRIC[metric];
   const { data, error } = await supabase
     .from('leaderboard_week')
-    .select('user_id, username, display_name, avatar_url, workouts_count, volume_lbs, duration_seconds')
+    .select('user_id, username, display_name, avatar_url, profile_color, workouts_count, volume_lbs, duration_seconds')
     .order(column as string, { ascending: false })
     .limit(100);
 

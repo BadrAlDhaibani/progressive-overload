@@ -1163,7 +1163,8 @@ Pre-conditions flagged in Phase 1.7 that must land before S6/S7. Currently one b
 
 | Batch | Status | Description |
 |-------|--------|-------------|
-| D1 | Pending | In-app account deletion (Supabase + Apple token revoke) |
+| D1a | Done | In-app account deletion — backend (migration 0002 + delete-account edge function + cleanup_empty_chat trigger) |
+| D1b | Pending | In-app account deletion — client wiring (useAuthStore.deleteAccount + Delete UI in app/settings/username.tsx) |
 
 ---
 
@@ -1305,3 +1306,39 @@ Do this before S6.5 (App Privacy declaration) and S6.7 (Review Notes) are finali
 4. Create a template with one exercise, delete that exercise → the template disappears from the Home carousel.
 5. After delete, start a workout and tap "Add Exercise" → deleted exercise is not in the picker.
 6. Cancel leaves data unchanged. Search, muscle-group chips, pull-to-refresh, and the Add-custom-exercise modal all still work.
+
+---
+
+# Phase 1.9: Social layer polish
+
+## Context
+
+Follow-ups to the Phase 1.7 social PR that didn't block its merge but improve the signed-in experience. Independent of the Phase 1.8 account-deletion blocker.
+
+## Progress
+
+| Batch | Status | Description |
+|-------|--------|-------------|
+| P1 | Done | User-pickable profile color |
+
+---
+
+## P1: User-pickable profile color
+
+**Goal**: Signed-in users pick their avatar color from a 7-swatch palette (or "default" = seed-hashed fallback) so chats, leaderboard, and profile header all reflect their choice.
+
+### Changes
+
+- `supabase/migrations/0003_profile_color.sql` — nullable `profile_color text` column on `profiles` with `check (profile_color is null or profile_color ~ '^#[0-9a-fA-F]{6}$')`. `leaderboard_week` view dropped + recreated to include the new column.
+- `constants/colors.ts` — `AVATAR_PALETTE` exported (7 hex colors), single source of truth for the picker and the seed-hash fallback.
+- `components/friends/Avatar.tsx` — new `avatarColorFor(seed, color)` helper: returns the chosen color, or a palette entry indexed by a hash of the seed when color is null. Initial foreground is picked by background luminance so the letter stays readable on the lighter swatches.
+- `lib/social/types.ts` — `profile_color: string | null` added to `Profile`, `LeaderboardRow`, and `ChatSummary.other`.
+- `lib/social/profiles.ts` — new `updateProfileColor(userId, color)` with hex validation and RLS-backed `.eq('id', userId)` update.
+- `lib/social/chats.ts` — joined profile select includes `profile_color` in both `listChats` and `getChatPartner`.
+- `lib/social/leaderboard.ts` — `fetchLeaderboard` explicitly selects `profile_color`.
+- `app/settings/username.tsx` — color-picker section with live preview and dashed "default" swatch, `pendingColor` dirty tracking, saves both username and color in one tap.
+- Consumers wired: `ChatListItem`, `LeaderboardRow` (also used for gradient tint), `ProfileHeader`.
+
+### Known limitation
+
+- Profile-color changes don't propagate in realtime — other users see a new color only after pull-to-refresh on their chat list or leaderboard. Consistent with the app's current data-fetch model (no profile-row subscriptions anywhere). Acceptable for MVP.

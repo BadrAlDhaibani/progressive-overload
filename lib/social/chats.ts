@@ -4,7 +4,7 @@ import type { ChatMessage, ChatSummary, Profile } from './types';
 export async function listChats(currentUserId: string): Promise<ChatSummary[]> {
   const { data: chatRows, error } = await supabase
     .from('chats')
-    .select('id, last_message_at, chat_members!inner(user_id, profiles(id, username, display_name, avatar_url))')
+    .select('id, last_message_at, chat_members!inner(user_id, profiles(id, username, display_name, avatar_url, profile_color))')
     .order('last_message_at', { ascending: false });
 
   if (error) throw error;
@@ -18,7 +18,7 @@ export async function listChats(currentUserId: string): Promise<ChatSummary[]> {
     return {
       id: c.id,
       last_message_at: c.last_message_at,
-      other: other as Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>,
+      other: other as Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'profile_color'>,
       preview: previews[c.id] ?? null,
     };
   }).filter((c) => c.other != null);
@@ -74,7 +74,7 @@ export async function sendMessage(chatId: string, senderId: string, body: string
 export async function getChatPartner(chatId: string, currentUserId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from('chat_members')
-    .select('profiles(id, username, display_name, avatar_url, created_at, updated_at)')
+    .select('profiles(id, username, display_name, avatar_url, profile_color, created_at, updated_at)')
     .eq('chat_id', chatId);
   if (error) throw error;
   const other = (data ?? [])

@@ -47,3 +47,17 @@ export async function updateUsername(userId: string, next: string): Promise<Prof
   }
   return data as Profile;
 }
+
+export async function updateProfileColor(userId: string, color: string | null): Promise<Profile> {
+  if (color !== null && !/^#[0-9a-f]{6}$/i.test(color)) {
+    throw new Error('Invalid color.');
+  }
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ profile_color: color, updated_at: new Date().toISOString() })
+    .eq('id', userId)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data as Profile;
+}

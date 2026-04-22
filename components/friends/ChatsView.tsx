@@ -68,6 +68,7 @@ export default function ChatsView() {
         </View>
       ) : (
         <FlatList
+          style={styles.flex}
           data={chats}
           keyExtractor={(c) => c.id}
           contentContainerStyle={styles.list}
@@ -93,6 +94,9 @@ const createStyles = (colors: Colors) =>
     container: {
       flex: 1,
     },
+    flex: {
+      flex: 1,
+    },
     newChatButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -112,6 +116,7 @@ const createStyles = (colors: Colors) =>
     list: {
       paddingHorizontal: 16,
       paddingBottom: 32,
+      flexGrow: 1,
     },
     state: {
       flex: 1,

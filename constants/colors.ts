@@ -73,3 +73,13 @@ export function useColors(): Colors {
   const scheme = useColorScheme();
   return scheme === 'dark' ? darkColors : lightColors;
 }
+
+export const AVATAR_PALETTE = [
+  '#fb7185',
+  '#60a5fa',
+  '#f59e0b',
+  '#34d399',
+  '#a78bfa',
+  '#22d3ee',
+  '#f472b6',
+];

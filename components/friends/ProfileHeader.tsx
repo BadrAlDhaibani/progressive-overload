@@ -21,7 +21,7 @@ export default function ProfileHeader() {
       onPress={() => router.push('/settings/username')}
       style={styles.row}
     >
-      <Avatar seed={profile.id} label={profile.username} size={34} />
+      <Avatar seed={profile.id} label={profile.username} size={34} color={profile.profile_color} />
       <Text style={styles.username} numberOfLines={1}>@{profile.username}</Text>
     </AnimatedPressable>
   );

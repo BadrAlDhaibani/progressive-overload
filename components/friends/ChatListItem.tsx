@@ -20,7 +20,7 @@ export default function ChatListItem({ chat, onPress }: Props) {
 
   return (
     <AnimatedPressable onPress={onPress} style={styles.row}>
-      <Avatar seed={chat.other.id} label={label} size={48} />
+      <Avatar seed={chat.other.id} label={label} size={48} color={chat.other.profile_color} />
       <View style={styles.middle}>
         <View style={styles.topRow}>
           <Text style={styles.name} numberOfLines={1}>@{chat.other.username}</Text>

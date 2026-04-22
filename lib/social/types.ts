@@ -3,6 +3,7 @@ export type Profile = {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  profile_color: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -14,6 +15,7 @@ export type LeaderboardRow = {
   username: string;
   display_name: string | null;
   avatar_url: string | null;
+  profile_color: string | null;
   workouts_count: number;
   volume_lbs: number;
   duration_seconds: number;
@@ -22,7 +24,7 @@ export type LeaderboardRow = {
 export type ChatSummary = {
   id: string;
   last_message_at: string;
-  other: Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url'>;
+  other: Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'profile_color'>;
   preview: string | null;
 };
 

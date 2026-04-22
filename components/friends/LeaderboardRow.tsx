@@ -4,8 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
-import { cardShadow } from '@/constants/shadows';
-import Avatar from './Avatar';
+import Avatar, { avatarColorFor } from './Avatar';
 import type { LeaderboardMetric, LeaderboardRow as Row } from '@/lib/social/types';
 import { formatMetric, metricUnit } from './format';
 
@@ -18,12 +17,16 @@ interface Props {
 
 export default function LeaderboardRow({ row, rank, metric, isSelf }: Props) {
   const colors = useColors();
-  const styles = useMemo(() => createStyles(colors, isSelf, rank), [colors, isSelf, rank]);
+  const tint = avatarColorFor(row.user_id, row.profile_color);
+  const styles = useMemo(
+    () => createStyles(colors, isSelf, rank, tint),
+    [colors, isSelf, rank, tint]
+  );
 
   const Body = (
     <>
       <Text style={styles.rank}>{rank}</Text>
-      <Avatar seed={row.user_id} label={row.display_name ?? row.username} size={40} />
+      <Avatar seed={row.user_id} label={row.display_name ?? row.username} size={40} color={row.profile_color} />
       <View style={styles.middle}>
         <Text style={styles.username} numberOfLines={1}>
           @{row.username}
@@ -35,10 +38,10 @@ export default function LeaderboardRow({ row, rank, metric, isSelf }: Props) {
     </>
   );
 
-  if (rank === 1) {
+  if (!isSelf) {
     return (
       <LinearGradient
-        colors={[colors.primaryLight, colors.bgCard]}
+        colors={[`${tint}3a`, `${tint}1a`]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.row}
@@ -51,7 +54,7 @@ export default function LeaderboardRow({ row, rank, metric, isSelf }: Props) {
   return <View style={styles.row}>{Body}</View>;
 }
 
-const createStyles = (colors: Colors, isSelf: boolean, rank: number) =>
+const createStyles = (colors: Colors, isSelf: boolean, rank: number, tint: string) =>
   StyleSheet.create({
     row: {
       flexDirection: 'row',
@@ -59,12 +62,11 @@ const createStyles = (colors: Colors, isSelf: boolean, rank: number) =>
       gap: 12,
       paddingHorizontal: 14,
       paddingVertical: 12,
-      backgroundColor: isSelf ? colors.primaryLight : colors.bgCard,
+      backgroundColor: isSelf ? `${tint}22` : 'transparent',
       borderRadius: 14,
       marginBottom: 8,
       borderWidth: isSelf ? 1 : 0,
       borderColor: isSelf ? colors.primary : 'transparent',
-      ...(rank === 1 ? cardShadow(colors) : {}),
     },
     rank: {
       width: 24,
