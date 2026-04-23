@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
@@ -32,9 +33,11 @@ export default function LeaderboardView() {
     }
   }, [metric]);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  useFocusEffect(
+    useCallback(() => {
+      load();
+    }, [load])
+  );
 
   const sorted = useMemo(
     () => [...rows].sort((a, b) => metricValue(b, metric) - metricValue(a, metric)),
@@ -76,14 +79,6 @@ export default function LeaderboardView() {
               isSelf={item.user_id === myId}
             />
           )}
-          refreshControl={
-            <RefreshControl
-              refreshing={loading}
-              onRefresh={load}
-              tintColor={colors.primary}
-              colors={[colors.primary]}
-            />
-          }
         />
       )}
     </View>

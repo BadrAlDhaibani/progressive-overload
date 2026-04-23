@@ -95,6 +95,10 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="exercise/new"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
+          <Stack.Screen
             name="chat/[id]"
             options={{ gestureEnabled: true }}
           />

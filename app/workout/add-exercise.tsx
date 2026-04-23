@@ -25,7 +25,6 @@ import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { getLastPerformance } from '@/db/workouts';
 import ExerciseListItem from '@/components/ExerciseListItem';
 import AnimatedPressable from '@/components/AnimatedPressable';
-import AddExerciseModal from '@/components/AddExerciseModal';
 
 export default function AddExerciseScreen() {
   const colors = useColors();
@@ -34,7 +33,6 @@ export default function AddExerciseScreen() {
 
   const [search, setSearch] = useState('');
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
 
   const workoutId = useWorkoutStore((s) => s.workoutId);
   const exerciseIds = useWorkoutStore((s) => s.exerciseIds);
@@ -82,15 +80,6 @@ export default function AddExerciseScreen() {
     [exerciseIds, workoutId, addExercise, addSet, addSetWithValues]
   );
 
-  const handleCustomExerciseAdded = useCallback(
-    (id: number, name: string, muscleGroup: string, isAssisted: boolean) => {
-      addExercise(id, name, muscleGroup, isAssisted);
-      addSet(id);
-      router.back();
-    },
-    [addExercise, addSet, router]
-  );
-
   const renderItem = useCallback(
     ({ item }: { item: Exercise }) => {
       const alreadyAdded = exerciseIds.includes(item.id);
@@ -121,7 +110,7 @@ export default function AddExerciseScreen() {
         <Text style={styles.title}>Add Exercise</Text>
         <View style={styles.headerButtons}>
           <AnimatedPressable
-            onPress={() => setModalVisible(true)}
+            onPress={() => router.push('/exercise/new')}
             hitSlop={8}
             style={styles.createButton}
           >
@@ -189,12 +178,6 @@ export default function AddExerciseScreen() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         keyboardDismissMode="on-drag"
         ListEmptyComponent={<Text style={styles.emptyText}>No exercises found</Text>}
-      />
-
-      <AddExerciseModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        onAdd={handleCustomExerciseAdded}
       />
     </SafeAreaView>
   );

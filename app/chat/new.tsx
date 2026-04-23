@@ -47,12 +47,7 @@ export default function NewChatScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <ScreenHeader
-        title="New chat"
-        rightLabel="Start"
-        onRightPress={handleSubmit}
-        disabled={busy || value.trim().length === 0}
-      />
+      <ScreenHeader title="New chat" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

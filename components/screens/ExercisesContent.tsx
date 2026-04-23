@@ -10,13 +10,12 @@ import {
   Alert,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
 import AnimatedScreen from '@/components/AnimatedScreen';
-import AddExerciseModal from '@/components/AddExerciseModal';
 import { muscleGroups, type MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
 import {
@@ -39,7 +38,12 @@ export default function ExercisesContent() {
   const [search, setSearch] = useState('');
   const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
-  const [modalVisible, setModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey((k) => k + 1);
+    }, [])
+  );
 
   const exercises = useMemo(() => {
     if (search.trim()) {
@@ -57,11 +61,6 @@ export default function ExercisesContent() {
 
   const handleChipPress = useCallback((group: string) => {
     setActiveGroup((prev) => (prev === group ? null : group));
-  }, []);
-
-  const handleModalClose = useCallback(() => {
-    setRefreshKey((k) => k + 1);
-    setModalVisible(false);
   }, []);
 
   const handleExercisePress = useCallback((exercise: Exercise) => {
@@ -124,7 +123,7 @@ export default function ExercisesContent() {
         <Text style={styles.title}>Exercises</Text>
         <Pressable
           style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}
-          onPress={() => setModalVisible(true)}
+          onPress={() => router.push('/exercise/new')}
         >
           <Ionicons name="add" size={22} color={colors.primary} />
         </Pressable>
@@ -200,11 +199,6 @@ export default function ExercisesContent() {
         ListEmptyComponent={
           <Text style={styles.emptyText}>No exercises found</Text>
         }
-      />
-
-      <AddExerciseModal
-        visible={modalVisible}
-        onClose={handleModalClose}
       />
     </View>
     </AnimatedScreen>
