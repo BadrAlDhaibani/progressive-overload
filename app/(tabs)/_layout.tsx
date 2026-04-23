@@ -1,15 +1,17 @@
 import { useRef, useState, useCallback, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Pressable, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import PagerView from 'react-native-pager-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
-import { fonts } from '@/constants/typography';
 import HomeContent from '@/components/screens/HomeContent';
 import HistoryContent from '@/components/screens/HistoryContent';
 import ExercisesContent from '@/components/screens/ExercisesContent';
 import FriendsContent from '@/components/screens/FriendsContent';
+import AnimatedPressable from '@/components/AnimatedPressable';
 
 type TabConfig = {
   title: string;
@@ -29,6 +31,7 @@ export default function TabLayout() {
   const isTabPressing = useRef(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const onPageScroll = useCallback((e: { nativeEvent: { position: number; offset: number } }) => {
@@ -44,6 +47,7 @@ export default function TabLayout() {
   }, []);
 
   const onTabPress = useCallback((index: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     isTabPressing.current = true;
     setActiveIndex(index);
     pagerRef.current?.setPage(index);
@@ -65,24 +69,36 @@ export default function TabLayout() {
         ))}
       </PagerView>
 
-      <SafeAreaView edges={['bottom']} style={{ backgroundColor: colors.bg }}>
-        <View style={styles.tabBar}>
-          {tabs.map((tab, index) => {
-            const isActive = index === activeIndex;
-            const tint = isActive ? colors.primary : colors.textMuted;
-            return (
-              <Pressable
-                key={index}
-                style={styles.tabItem}
-                onPress={() => onTabPress(index)}
-              >
-                <Ionicons name={tab.icon} size={24} color={tint} />
-                <Text style={[styles.tabLabel, { color: tint }]}>{tab.title}</Text>
-              </Pressable>
-            );
-          })}
+      <View
+        pointerEvents="box-none"
+        style={[styles.floatingWrapper, { bottom: Math.max(insets.bottom - 8, 8) }]}
+      >
+        <View style={styles.pillShadow}>
+          <BlurView
+            intensity={80}
+            tint={colors.isDark ? 'dark' : 'light'}
+            style={styles.pill}
+          >
+            {tabs.map((tab, index) => {
+              const isActive = index === activeIndex;
+              const tint = isActive ? colors.primary : colors.textMuted;
+              return (
+                <AnimatedPressable
+                  key={index}
+                  containerStyle={styles.tabItem}
+                  style={styles.tabItemInner}
+                  onPress={() => onTabPress(index)}
+                  accessibilityLabel={tab.title}
+                  accessibilityRole="tab"
+                  accessibilityState={{ selected: isActive }}
+                >
+                  <Ionicons name={tab.icon} size={26} color={tint} />
+                </AnimatedPressable>
+              );
+            })}
+          </BlurView>
         </View>
-      </SafeAreaView>
+      </View>
     </View>
   );
 }
@@ -99,22 +115,37 @@ const createStyles = (colors: Colors) =>
     page: {
       flex: 1,
     },
-    tabBar: {
+    floatingWrapper: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+    },
+    pillShadow: {
+      borderRadius: 28,
+      shadowColor: '#000',
+      shadowOpacity: 0.08,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 6,
+    },
+    pill: {
       flexDirection: 'row',
-      backgroundColor: colors.bg,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-      paddingTop: 8,
+      height: 56,
+      paddingHorizontal: 8,
+      borderRadius: 28,
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.border,
     },
     tabItem: {
-      flex: 1,
+      width: 56,
+      height: 56,
+    },
+    tabItemInner: {
+      width: '100%',
+      height: '100%',
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: 4,
-    },
-    tabLabel: {
-      fontSize: 10,
-      fontFamily: fonts.medium,
-      marginTop: 4,
     },
   });

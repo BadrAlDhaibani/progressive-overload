@@ -3,6 +3,7 @@ import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '@/constants/layout';
 import { fonts } from '@/constants/typography';
 import SegmentedControl from '@/components/SegmentedControl';
 import LeaderboardRow from './LeaderboardRow';
@@ -99,7 +100,7 @@ const createStyles = (colors: Colors) =>
     },
     list: {
       paddingHorizontal: 16,
-      paddingBottom: 32,
+      paddingBottom: TAB_BAR_SCROLL_PADDING,
       flexGrow: 1,
     },
     state: {

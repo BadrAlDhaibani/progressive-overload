@@ -25,7 +25,9 @@ export default function LeaderboardRow({ row, rank, metric, isSelf }: Props) {
 
   const Body = (
     <>
-      <Text style={styles.rank}>{rank}</Text>
+      <View style={styles.rankBadge}>
+        <Text style={styles.rank}>{rank}</Text>
+      </View>
       <Avatar seed={row.user_id} label={row.display_name ?? row.username} size={40} color={row.profile_color} />
       <View style={styles.middle}>
         <Text style={styles.username} numberOfLines={1}>
@@ -68,12 +70,26 @@ const createStyles = (colors: Colors, isSelf: boolean, rank: number, tint: strin
       borderWidth: isSelf ? 1 : 0,
       borderColor: isSelf ? colors.primary : 'transparent',
     },
+    rankBadge: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor:
+        rank === 1 ? colors.medalGoldLight
+        : rank === 2 ? colors.medalSilverLight
+        : rank === 3 ? colors.medalBronzeLight
+        : 'transparent',
+    },
     rank: {
-      width: 24,
-      textAlign: 'center',
       fontSize: 15,
       fontFamily: fonts.semiBold,
-      color: rank === 1 ? colors.primaryDark : colors.textSecondary,
+      color:
+        rank === 1 ? colors.medalGold
+        : rank === 2 ? colors.medalSilver
+        : rank === 3 ? colors.medalBronze
+        : colors.textSecondary,
     },
     middle: {
       flex: 1,

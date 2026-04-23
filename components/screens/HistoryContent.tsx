@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, SectionList, RefreshControl } from 'react-nativ
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '@/constants/layout';
 import { fonts } from '@/constants/typography';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import AnimatedPressable from '@/components/AnimatedPressable';
@@ -99,60 +100,61 @@ export default function HistoryContent() {
     [router]
   );
 
-  if (workouts.length === 0) {
-    return (
-      <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>No workouts yet</Text>
-        <Text style={styles.hintText}>Complete a workout to see it here</Text>
-      </View>
-    );
-  }
-
   return (
     <AnimatedScreen>
     <View style={styles.container}>
-      <SectionList
-        sections={sections}
-        keyExtractor={(item) => item.id.toString()}
-        stickySectionHeadersEnabled={false}
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={false}
-            onRefresh={loadWorkouts}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-          />
-        }
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.sectionHeader}>{title}</Text>
-        )}
-        renderItem={({ item }) => (
-          <AnimatedPressable
-            onPress={() => handleWorkoutPress(item.id)}
-            style={({ pressed }) => [
-              styles.workoutRow,
-              pressed && styles.workoutRowPressed,
-            ]}
-          >
-            <View style={styles.workoutInfo}>
-              <Text style={styles.workoutName}>
-                {item.name || 'Workout'}
-              </Text>
-              <Text style={styles.workoutMeta}>
-                {formatDate(item.started_at)} · {item.exerciseCount} exercise
-                {item.exerciseCount !== 1 ? 's' : ''} · {item.setCount} set
-                {item.setCount !== 1 ? 's' : ''}
-              </Text>
-            </View>
-            {item.finished_at && (
-              <Text style={styles.workoutDuration}>
-                {formatDuration(item.started_at, item.finished_at)}
-              </Text>
-            )}
-          </AnimatedPressable>
-        )}
-      />
+      <View style={styles.header}>
+        <Text style={styles.title}>History</Text>
+      </View>
+      {workouts.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>No workouts yet</Text>
+          <Text style={styles.hintText}>Complete a workout to see it here</Text>
+        </View>
+      ) : (
+        <SectionList
+          sections={sections}
+          keyExtractor={(item) => item.id.toString()}
+          stickySectionHeadersEnabled={false}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={false}
+              onRefresh={loadWorkouts}
+              tintColor={colors.primary}
+              colors={[colors.primary]}
+            />
+          }
+          renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.sectionHeader}>{title}</Text>
+          )}
+          renderItem={({ item }) => (
+            <AnimatedPressable
+              onPress={() => handleWorkoutPress(item.id)}
+              style={({ pressed }) => [
+                styles.workoutRow,
+                pressed && styles.workoutRowPressed,
+              ]}
+            >
+              <View style={styles.workoutInfo}>
+                <Text style={styles.workoutName}>
+                  {item.name || 'Workout'}
+                </Text>
+                <Text style={styles.workoutMeta}>
+                  {formatDate(item.started_at)} · {item.exerciseCount} exercise
+                  {item.exerciseCount !== 1 ? 's' : ''} · {item.setCount} set
+                  {item.setCount !== 1 ? 's' : ''}
+                </Text>
+              </View>
+              {item.finished_at && (
+                <Text style={styles.workoutDuration}>
+                  {formatDuration(item.started_at, item.finished_at)}
+                </Text>
+              )}
+            </AnimatedPressable>
+          )}
+        />
+      )}
     </View>
     </AnimatedScreen>
   );
@@ -164,10 +166,19 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       backgroundColor: colors.bg,
     },
+    header: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 8,
+    },
+    title: {
+      fontSize: 28,
+      fontFamily: fonts.bold,
+      color: colors.text,
+    },
     listContent: {
       paddingHorizontal: 16,
-      paddingTop: 16,
-      paddingBottom: 32,
+      paddingBottom: TAB_BAR_SCROLL_PADDING,
     },
     sectionHeader: {
       fontSize: 16,

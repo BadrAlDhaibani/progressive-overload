@@ -14,6 +14,7 @@ import { router, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '@/constants/layout';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import { muscleGroups, type MuscleGroup } from '@/constants/muscleGroups';
@@ -185,7 +186,10 @@ export default function ExercisesContent() {
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         style={styles.list}
-        contentContainerStyle={exercises.length === 0 ? styles.emptyContainer : undefined}
+        contentContainerStyle={[
+          styles.listContent,
+          exercises.length === 0 && styles.emptyContainer,
+        ]}
         ItemSeparatorComponent={Separator}
         keyboardDismissMode="on-drag"
         refreshControl={
@@ -276,6 +280,9 @@ const createStyles = (colors: Colors) =>
     },
     list: {
       flex: 1,
+    },
+    listContent: {
+      paddingBottom: TAB_BAR_SCROLL_PADDING,
     },
     separator: {
       height: StyleSheet.hairlineWidth,

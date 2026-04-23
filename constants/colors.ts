@@ -16,6 +16,12 @@ export type Colors = {
   success: string;
   error: string;
   textOnPrimary: string;
+  medalGold: string;
+  medalSilver: string;
+  medalBronze: string;
+  medalGoldLight: string;
+  medalSilverLight: string;
+  medalBronzeLight: string;
   isDark: boolean;
 };
 
@@ -41,6 +47,14 @@ const lightColors: Colors = {
 
   textOnPrimary: '#ffffff',
 
+  medalGold: '#D4A017',
+  medalSilver: '#8E8E93',
+  medalBronze: '#A56438',
+
+  medalGoldLight: '#FBE6A6',
+  medalSilverLight: '#E2E5E9',
+  medalBronzeLight: '#F0D7BD',
+
   isDark: false,
 };
 
@@ -65,6 +79,14 @@ const darkColors: Colors = {
   error: '#ef4444',
 
   textOnPrimary: '#ffffff',
+
+  medalGold: '#F4C430',
+  medalSilver: '#C8CDD3',
+  medalBronze: '#D08A4F',
+
+  medalGoldLight: '#3D3010',
+  medalSilverLight: '#3A3D42',
+  medalBronzeLight: '#3F2A19',
 
   isDark: true,
 };

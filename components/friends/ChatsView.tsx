@@ -4,6 +4,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '@/constants/layout';
 import { fonts } from '@/constants/typography';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import ChatListItem from './ChatListItem';
@@ -115,7 +116,7 @@ const createStyles = (colors: Colors) =>
     },
     list: {
       paddingHorizontal: 16,
-      paddingBottom: 32,
+      paddingBottom: TAB_BAR_SCROLL_PADDING,
       flexGrow: 1,
     },
     state: {

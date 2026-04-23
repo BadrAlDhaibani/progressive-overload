@@ -13,6 +13,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
+import { TAB_BAR_SCROLL_PADDING } from '@/constants/layout';
 import { cardShadow } from '@/constants/shadows';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import AnimatedPressable from '@/components/AnimatedPressable';
@@ -287,7 +288,7 @@ const createStyles = (colors: Colors) =>
     },
     contentContainer: {
       paddingHorizontal: 16,
-      paddingBottom: 32,
+      paddingBottom: TAB_BAR_SCROLL_PADDING,
     },
     header: {
       alignItems: 'center',
