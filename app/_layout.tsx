@@ -6,13 +6,16 @@ import {
   Inter_700Bold,
 } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
+import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initDatabase } from '@/db/database';
+import { parseNotificationKind } from '@/lib/notifications';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useTabNavStore } from '@/store/useTabNavStore';
 
 export {
   ErrorBoundary,
@@ -44,6 +47,24 @@ export default function RootLayout() {
       useAuthStore.getState().init();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    // Handle cold-start notification taps.
+    Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (response && parseNotificationKind(response) === 'workout_start') {
+        useTabNavStore.getState().requestTab('friends', 'leaderboard');
+      }
+    });
+    // Warm taps.
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        if (parseNotificationKind(response) === 'workout_start') {
+          useTabNavStore.getState().requestTab('friends', 'leaderboard');
+        }
+      },
+    );
+    return () => subscription.remove();
+  }, []);
 
   if (!loaded) {
     return null;

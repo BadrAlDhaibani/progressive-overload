@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { ensureProfile, getProfile } from '@/lib/social/profiles';
+import { registerForPushNotifications, unregisterPushToken } from '@/lib/notifications';
 import type { Profile } from '@/lib/social/types';
 
 async function formatInvokeError(error: unknown): Promise<string> {
@@ -78,6 +79,9 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
     try {
       const profile = await ensureProfile(userId, displayName);
       set({ status: 'signed-in', userId, profile, error: null });
+      registerForPushNotifications(userId).catch(() => {
+        /* push registration is best-effort; never block sign-in */
+      });
     } catch (e: any) {
       set({ status: 'signed-out', error: e?.message ?? 'Could not load profile.' });
     }
@@ -91,6 +95,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   },
 
   signOut: async () => {
+    // Unregister this device's push token while the session is still valid,
+    // so RLS authorizes the delete. Best-effort — swallow errors so sign-out
+    // always completes.
+    await unregisterPushToken().catch(() => {});
     if (isSupabaseConfigured) await supabase.auth.signOut();
     set({ status: 'signed-out', userId: null, profile: null });
   },

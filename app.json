@@ -15,10 +15,11 @@
     },
     "ios": {
       "bundleIdentifier": "app.provolone",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "supportsTablet": false,
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification"]
       }
     },
     "android": {
@@ -32,7 +33,14 @@
     "plugins": [
       "expo-router",
       "expo-sqlite",
-      "expo-dev-client"
+      "expo-dev-client",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/splash-icon.png",
+          "color": "#f43f5e"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

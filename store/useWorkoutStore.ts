@@ -7,6 +7,20 @@ import {
   finishWorkout as dbFinishWorkout,
   deleteWorkout,
 } from '@/db/workouts';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
+
+function notifyFriendsOfWorkoutStart(): void {
+  if (!isSupabaseConfigured) return;
+  if (useAuthStore.getState().status !== 'signed-in') return;
+  // Fire-and-forget — mirrors the syncWeeklyStats contract. The workout path
+  // must never depend on the network being reachable.
+  supabase.functions
+    .invoke('notify-workout-start', { method: 'POST' })
+    .catch(() => {
+      /* swallow — social is non-blocking */
+    });
+}
 
 export interface WorkoutExercise {
   exerciseId: number;
@@ -210,6 +224,9 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
     if (!target || state.workoutId === null) return;
 
     const toggled = !target.isComplete;
+    // "First completed set of this workout" check — computed before we mutate.
+    const isFirstCompletion =
+      toggled && !Object.values(state.sets).some((s) => s.isComplete);
 
     if (toggled) {
       // Completing the set — write to DB
@@ -236,6 +253,7 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
           },
         });
       }
+      if (isFirstCompletion) notifyFriendsOfWorkoutStart();
     } else {
       // Un-completing — update DB
       if (target.dbId !== null) {

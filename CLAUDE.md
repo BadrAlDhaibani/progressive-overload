@@ -86,8 +86,9 @@ supabase/
 - **Offline-first is non-negotiable.** The workout-logging path (`db/`, `useWorkoutStore`, SetRow, etc.) must work with no internet and no auth. Do not introduce Supabase calls into the core logging flow. The only hook from workout → Supabase is `syncWeeklyStats()` on workout finish, which is fire-and-forget.
 - **Auth is optional.** The Friends tab shows a `SignInPanel` when signed out. Never block access to Home/History/Exercises/workout on auth state.
 - **Config via env only.** `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY` are read from the environment (`.env` file at repo root, gitignored). Do **not** put these in `app.json` — see `docs/SUPABASE.md` for setup.
-- **Schema changes** go in `supabase/migrations/` as numbered SQL files. They are run manually in the Supabase SQL editor; the app does not apply them.
-- **RLS is on for every table** — profiles, weekly_stats, chats, chat_members, messages. When adding tables, add RLS policies in the same migration.
+- **Schema changes** still live in `supabase/migrations/` as numbered SQL files — they are the source of truth. The app does not apply them.
+- **Supabase MCP is available.** Prefer MCP tools over asking the user to run CLI commands when the repo is linked. Useful ones: `mcp__supabase__apply_migration` (runs a migration against the linked project), `mcp__supabase__deploy_edge_function`, `mcp__supabase__execute_sql` (read-only queries for inspection), `mcp__supabase__list_tables`, `mcp__supabase__get_logs`, `mcp__supabase__get_advisors` (security/perf lint). Still write the numbered `supabase/migrations/NNNN_*.sql` file first so history is preserved, then apply it via MCP.
+- **RLS is on for every table** — profiles, weekly_stats, chats, chat_members, messages. When adding tables, add RLS policies in the same migration. Run `mcp__supabase__get_advisors` after schema changes to catch RLS gaps.
 - Data access lives in `lib/social/*`; stores (`useAuthStore`) hold session state only and call into `lib/social/` for I/O.
 
 ### Styling

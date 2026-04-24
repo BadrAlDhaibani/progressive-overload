@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback, useMemo } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import PagerView from 'react-native-pager-view';
@@ -12,6 +12,7 @@ import HistoryContent from '@/components/screens/HistoryContent';
 import ExercisesContent from '@/components/screens/ExercisesContent';
 import FriendsContent from '@/components/screens/FriendsContent';
 import AnimatedPressable from '@/components/AnimatedPressable';
+import { useTabNavStore, tabNameToIndex } from '@/store/useTabNavStore';
 
 type TabConfig = {
   title: string;
@@ -52,6 +53,17 @@ export default function TabLayout() {
     setActiveIndex(index);
     pagerRef.current?.setPage(index);
   }, []);
+
+  // Consume a pending tab request (e.g. from a notification tap).
+  const pendingTab = useTabNavStore((s) => s.pendingTab);
+  useEffect(() => {
+    if (!pendingTab) return;
+    const index = tabNameToIndex(pendingTab);
+    isTabPressing.current = true;
+    setActiveIndex(index);
+    pagerRef.current?.setPage(index);
+    useTabNavStore.getState().consumeTab();
+  }, [pendingTab]);
 
   return (
     <View style={styles.container}>

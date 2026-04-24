@@ -11,6 +11,7 @@ import FriendsListView from '@/components/friends/FriendsListView';
 import SignInPanel from '@/components/friends/SignInPanel';
 import ProfileHeader from '@/components/friends/ProfileHeader';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useTabNavStore } from '@/store/useTabNavStore';
 
 type Tab = 'leaderboard' | 'friends';
 
@@ -21,10 +22,17 @@ export default function FriendsContent() {
 
   const status = useAuthStore((s) => s.status);
   const init = useAuthStore((s) => s.init);
+  const pendingSegment = useTabNavStore((s) => s.pendingSegment);
 
   useEffect(() => {
     if (status === 'loading') init();
   }, [init, status]);
+
+  useEffect(() => {
+    if (!pendingSegment) return;
+    setTab(pendingSegment);
+    useTabNavStore.getState().consumeSegment();
+  }, [pendingSegment]);
 
   if (status === 'loading') {
     return (

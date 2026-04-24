@@ -1446,3 +1446,122 @@ Declining a request is a DELETE, not a status change. A declined row serves no p
 ### Forward-compat note (for upcoming notifications phase)
 
 The friendships table is designed to absorb a `notifications_muted boolean not null default false` column later without disruption (nullable-with-default). The realtime publication + RLS shape will be exactly what the server-side push trigger reads. No debt introduced by shipping friendships without notifications.
+
+---
+---
+
+# Phase 1.11: Friend Push Notifications
+
+## Context
+
+Signed-in user A completes the first set of a workout → their accepted friends receive an Expo push ("@A started a workout"). Tap opens the Friends tab, leaderboard segment. 2-hour dedup per `(actor → recipient)` pair. Opt-outs in N2: global send toggle ("silent workout"), global receive toggle, one-way per-friend mute.
+
+Decisions locked during Phase 1.10 planning; see `~/.claude/plans/check-the-plan-md-and-jiggly-forest.md` for the full plan.
+
+## Progress
+
+| Batch | Status | Description |
+|-------|--------|-------------|
+| N1 | Done | Backend schema + edge function + client registration + first-set trigger + tap routing |
+| N2 | Pending | Opt-out UI (global send / global receive / per-friend mute) |
+
+---
+
+## N1: End-to-end push plumbing
+
+**Goal**: Friends of an actor receive a push on first-set completion. No UI toggles yet — everyone opted in by default.
+
+**Install:** `npx expo install expo-notifications expo-device`
+
+**Create:**
+- `supabase/migrations/0005_push_notifications.sql` — four additions:
+  - `push_tokens` table (pk `expo_token`, fk `user_id → profiles`, platform enum, RLS `user_id = auth.uid()`)
+  - `notification_prefs` table (pk `user_id`, `send_enabled`, `receive_enabled`, defaults true; lazy-created by client)
+  - `notifications_sent` dedup table (pk `actor_id, recipient_id, sent_at`; RLS locked, service-role only)
+  - `friendships.mute_by_requester` and `friendships.mute_by_recipient` columns (one-way mute — see Mute semantics)
+- `supabase/functions/notify-workout-start/index.ts` — Deno edge function mirroring the `delete-account` pattern:
+  1. Verify caller JWT via `admin.auth.getUser` (project uses ES256 → `verify_jwt=false`)
+  2. Skip if actor's `send_enabled = false`
+  3. Load accepted friends; resolve per-friend mute column based on actor's side of the row; drop muted
+  4. Drop recipients with `receive_enabled = false`
+  5. Drop recipients with a `notifications_sent` row within 2h
+  6. Batch-POST to `https://exp.host/--/api/v2/push/send` (100 msg/batch); only successful `status: 'ok'` tickets count
+  7. Insert `notifications_sent` rows for successful recipients
+- `lib/notifications.ts` — `registerForPushNotifications(userId)` (permission prompt, Expo token fetch via `Constants.expoConfig.extra.eas.projectId`, RLS'd upsert into `push_tokens`), `unregisterPushToken()` (delete this device's token), `parseNotificationKind(response)` helper. Foreground handler returns `shouldShowBanner/List: true`, no sound/badge.
+- `store/useTabNavStore.ts` — tiny Zustand store: `pendingTab`, `pendingSegment`, `requestTab()`, `consumeTab()`, `consumeSegment()`. Bridges the notification tap → the PagerView tab switch and the FriendsContent segment switch.
+
+**Modify:**
+- `app.json` — add `expo-notifications` plugin config (icon + color) and `UIBackgroundModes: ["remote-notification"]` to `ios.infoPlist`.
+- `store/useAuthStore.ts` — `setSession` kicks off `registerForPushNotifications` fire-and-forget after `status` flips to `signed-in`. `signOut` awaits `unregisterPushToken` before `supabase.auth.signOut()` so RLS still authorizes the delete.
+- `store/useWorkoutStore.ts` — `completeSet` detects first-completion (no other set in the workout is complete), then fire-and-forget `supabase.functions.invoke('notify-workout-start')`. Guards on `isSupabaseConfigured` and `status === 'signed-in'` — offline/signed-out core flow untouched.
+- `app/_layout.tsx` — on mount, read `Notifications.getLastNotificationResponseAsync()` for cold-start taps and register `addNotificationResponseReceivedListener` for warm taps. Both route via `useTabNavStore.requestTab('friends', 'leaderboard')`.
+- `app/(tabs)/_layout.tsx` — consume `pendingTab` in a `useEffect`: flip `activeIndex` and drive `PagerView` to that page.
+- `components/screens/FriendsContent.tsx` — consume `pendingSegment` in a `useEffect`: set local `tab` state.
+
+**Mute semantics** (one-way, user-confirmed during planning): `friendships` is a single row per pair; two boolean columns (`mute_by_requester`, `mute_by_recipient`) let each viewer mute independently. When actor A triggers a push, recipient B is skipped iff the *B-side* mute column is true. A still receives B's pushes unless A mutes B from their own side.
+
+**Decisions carried forward:**
+- Client-initiated invoke (matches existing `syncWeeklyStats` fire-and-forget pattern), no Postgres trigger.
+- Dedup in a dedicated table, 2h lookback via index `(actor_id, recipient_id, sent_at desc)`.
+- `expo_token` is the PK → multi-device supported; sign-out removes only the current device's row.
+- Only successful Expo tickets mark dedup (failed sends remain eligible for retry on next workout).
+
+### Deploy (done 2026-04-24 via Supabase MCP)
+
+- `supabase/migrations/0005_push_notifications.sql` applied (+ a tiny follow-up `0005_fix_trigger_search_path` to pin `search_path = public` on the two new trigger functions; source file updated to match).
+- `notify-workout-start` deployed v1, ACTIVE, `verify_jwt = false` (ES256 JWTs are validated in-function via `admin.auth.getUser`).
+- Security advisors clean after deploy; the one INFO on `notifications_sent` ("RLS enabled, no policies") is **intentional** — service-role-only table, zero policies by design.
+- `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` are platform-injected; no Apple secrets on this function.
+
+### APNs / Expo push setup (one-time, manual)
+
+1. **Apple App ID** — enable **Push Notifications** capability on `app.provolone`; leave **Broadcast Capability** off; skip the SSL-cert dialog (Auth Key replaces certs).
+2. **APNs Auth Key (.p8)** — new key in developer.apple.com → Keys; tick APNs; **Sandbox & Production**, **Team Scoped**. One-shot download. Keep it separate from the Sign in with Apple key for independent revocation.
+3. **Upload to Expo** — `eas credentials` → iOS → production → **Push Notifications: Add a new push key** → answer `n` when asked to generate a new one (we have our own) → point at `.p8`, paste Key ID, confirm Team ID (`T88Y585VZ3`).
+
+### Execution sequence (post-code-commit)
+
+N1 code is on disk, type-checks clean, backend is already deployed, APNs key is uploaded, `app.json` is bumped to `buildNumber: "5"`. Left to do:
+
+1. **Commit N1.** The diff covers: migration + edge function + plan doc, `lib/notifications.ts`, `store/useTabNavStore.ts`, `app.json` (plugin + `UIBackgroundModes` + buildNumber), `package.json` (+ expo-notifications, expo-device), `store/useAuthStore.ts` (register/unregister hooks), `store/useWorkoutStore.ts` (first-set trigger), `app/_layout.tsx` (tap listener), `app/(tabs)/_layout.tsx` (`pendingTab` consumer), `components/screens/FriendsContent.tsx` (`pendingSegment` consumer), `CLAUDE.md` (Supabase MCP note).
+2. **Production build** — `EXPO_NO_CAPABILITY_SYNC=1 eas build --profile production --platform ios`. The env-var prefix blocks EAS from trying to turn off Sign in with Apple on the App ID (real users have signed in via SIWA; Apple rejects the disable).
+3. **Submit to TestFlight** — `eas submit --platform ios --latest`. 5–30 min Apple processing; the existing S5 tester group receives the build automatically.
+4. **Device test** — per the N1 Test section below: two accepted friends on two phones installed from TestFlight, complete first set, watch for the push, tap to confirm it lands on Friends → Leaderboard.
+5. **Then N2** — opt-out UI. Small batch, no new native code, iterable via dev client once one is rebuilt.
+6. **If broken** — bump `buildNumber` to `"6"`, fix, rebuild, re-submit. Use Supabase MCP `get_logs notify-workout-start` for edge-function errors and `execute_sql` to inspect `push_tokens` / `notifications_sent` rows.
+
+### Test (N1)
+
+**Prereqs:** two physical iPhones signed in as A and B, accepted friendship, migration + function deployed, APNs key uploaded to Expo.
+
+1. Sign-in on each device → `push_tokens` row appears for each. Re-launching the app: no duplicate row (upsert on `expo_token`).
+2. A starts a workout, completes the first set → B's iPhone receives "@A started a workout" within a few seconds. Tap → Friends tab, leaderboard segment (works from cold start and from the background).
+3. A completes sets 2..N in the same workout → no extra pushes (first-set guard).
+4. A finishes, starts a second workout, completes first set → B receives nothing (2h dedup). Dashboard: one `notifications_sent` row for (A,B).
+5. Manually backdate the `sent_at` to >2h ago; A completes first set of a new workout → B gets the push; new dedup row.
+6. Sign A out → `push_tokens` row for that install is deleted. Sign back in → new token registered. Core offline logging unaffected throughout.
+7. Simulator: no crash, no token registered.
+
+---
+
+## Deferred — N1 follow-ups (post-launch cleanup)
+
+Surfaced during the N1 code review. None are launch blockers; bundle into a single small batch once real traffic is flowing.
+
+- **Prune `push_tokens` on `DeviceNotRegistered` tickets.** Edge function currently logs `ticket.status === 'error'` and moves on (`notify-workout-start/index.ts:180-186`). Expo returns `details.error: 'DeviceNotRegistered'` when the user uninstalls or revokes notification permission. Detect that specific code and `delete from push_tokens where expo_token = ?`. Prevents the table from accumulating dead rows and cuts wasted Expo API calls.
+- **Clear orphan rows that survive force-quit → sign-out.** `lib/notifications.ts:19` holds `currentToken` in module-level state. If the user force-quits between sign-in and sign-out, `unregisterPushToken` bails silently because `currentToken` is null. The stale row is eventually overwritten on next sign-in (PK upsert on `expo_token`), but it will receive pushes in the meantime. Fixed for free by the `DeviceNotRegistered` pruning above once the user uninstalls; for the more common case (same install, different account), consider also deleting tokens for the current `expo_token` on app launch before registering.
+- **Prune `notifications_sent` rows older than the dedup window.** Table is append-only and only the 2h window is ever queried. Volume is low (friends × workouts) so it's not urgent, but a `pg_cron` job running daily — `delete from notifications_sent where sent_at < now() - interval '7 days'` — keeps it tidy. Low priority.
+- **Android notification icon.** `app.json` plugin config points `icon` at `./assets/images/splash-icon.png`. iOS ignores it (uses app icon); Android expects a white-on-transparent monochrome icon and will render a full-color asset as a flat silhouette. Fine for the iOS-first TestFlight build — revisit before any Android build.
+- **`shouldShowAlert: true` back-compat key in `setNotificationHandler`** (`lib/notifications.ts:15`). expo-notifications `~0.32` uses `shouldShowBanner` / `shouldShowList` exclusively; the legacy key is no longer part of the handler shape. Drop the key + comment if TS ever flags it.
+
+---
+
+## Deferred — chat message notifications (NOT in N1 or N2)
+
+Architecturally distinct from workout-start pushes and deliberately out of this phase:
+- **Trigger** is server-side (Postgres trigger on `messages` insert via `pg_net`), not client-fired.
+- **Deep link** opens `/chat/[id]` with a new `kind: 'chat_message'` data shape and a chat-id param in the payload.
+- **Dedup** is different — foreground-in-thread suppression rather than a 2h window.
+- **Consent** layers a chat-level mute on top of the existing friend mute.
+
+Reuses the `notification_prefs` and `push_tokens` substrate landed in N1 but wants its own plan file. Plan *after* N1 + N2 land and real-world use informs the design.

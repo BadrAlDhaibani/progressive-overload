@@ -42,7 +42,8 @@
       "Bash(echo \"EXIT=$?\")",
       "mcp__supabase__list_tables",
       "mcp__supabase__get_advisors",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(echo \"exit=$?\")"
     ]
   },
   "enableAllProjectMcpServers": true,
