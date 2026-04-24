@@ -9,15 +9,35 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import ScreenHeader from '@/components/friends/ScreenHeader';
 import AnimatedPressable from '@/components/AnimatedPressable';
-import { startDirectChat } from '@/lib/social/chats';
+import { sendFriendRequest } from '@/lib/social/friends';
 import { normalizeUsername } from '@/lib/social/username';
 
-export default function NewChatScreen() {
+function humanizeError(message: string): string {
+  switch (message) {
+    case 'not authenticated':
+      return 'Sign in to send a friend request.';
+    case 'user not found':
+      return 'No user with that username.';
+    case 'cannot friend yourself':
+      return "You can't friend yourself.";
+    case 'already friends':
+      return "You're already friends.";
+    case 'request already sent':
+      return 'You already sent them a request.';
+    case 'pending request from this user':
+      return 'They already sent you a request — accept it from your Friends tab.';
+    default:
+      return message || 'Could not send request.';
+  }
+}
+
+export default function NewFriendRequestScreen() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -26,6 +46,7 @@ export default function NewChatScreen() {
   const [value, setValue] = useState(u ?? '');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
   const handleSubmit = useCallback(async () => {
     const username = normalizeUsername(value);
@@ -36,18 +57,43 @@ export default function NewChatScreen() {
     setBusy(true);
     setError(null);
     try {
-      const chatId = await startDirectChat(username);
-      router.replace(`/chat/${chatId}`);
+      await sendFriendRequest(username);
+      setSentTo(username);
     } catch (e: any) {
-      setError(e?.message ?? 'Could not start chat.');
+      setError(humanizeError(e?.message ?? ''));
     } finally {
       setBusy(false);
     }
-  }, [router, value]);
+  }, [value]);
+
+  if (sentTo) {
+    return (
+      <SafeAreaView style={styles.root} edges={['top']}>
+        <ScreenHeader title="Friend request" />
+        <View style={styles.sentBody}>
+          <View style={styles.sentIconWrap}>
+            <Ionicons name="checkmark" size={32} color={colors.textOnPrimary} />
+          </View>
+          <Text style={styles.sentTitle}>Request sent</Text>
+          <Text style={styles.sentHint}>
+            Waiting for @{sentTo} to accept. You'll see them on your leaderboard once they do.
+          </Text>
+          <AnimatedPressable
+            onPress={() => router.back()}
+            containerStyle={styles.sentCta}
+          >
+            <View style={styles.ctaInner}>
+              <Text style={styles.ctaText}>Done</Text>
+            </View>
+          </AnimatedPressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <ScreenHeader title="New chat" />
+      <ScreenHeader title="Add friend" />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -74,7 +120,7 @@ export default function NewChatScreen() {
           </View>
           {error && <Text style={styles.error}>{error}</Text>}
           <Text style={styles.hint}>
-            Ask your friend for their username from their Friends tab.
+            They'll get a pending request they can accept from their Friends tab.
           </Text>
 
           <AnimatedPressable
@@ -88,7 +134,7 @@ export default function NewChatScreen() {
                 (busy || value.trim().length === 0) && styles.ctaDisabled,
               ]}
             >
-              <Text style={styles.ctaText}>{busy ? 'Starting…' : 'Start chat'}</Text>
+              <Text style={styles.ctaText}>{busy ? 'Sending…' : 'Send request'}</Text>
             </View>
           </AnimatedPressable>
         </View>
@@ -166,5 +212,37 @@ const createStyles = (colors: Colors) =>
       fontSize: 16,
       fontFamily: fonts.semiBold,
       color: colors.textOnPrimary,
+    },
+    sentBody: {
+      paddingHorizontal: 16,
+      paddingTop: 48,
+      gap: 12,
+    },
+    sentIconWrap: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: 8,
+      alignSelf: 'center',
+    },
+    sentTitle: {
+      fontSize: 22,
+      fontFamily: fonts.bold,
+      color: colors.text,
+      textAlign: 'center',
+    },
+    sentHint: {
+      fontSize: 14,
+      fontFamily: fonts.regular,
+      color: colors.textSecondary,
+      textAlign: 'center',
+      paddingHorizontal: 16,
+    },
+    sentCta: {
+      marginTop: 24,
+      borderRadius: 12,
     },
   });

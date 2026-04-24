@@ -7,12 +7,12 @@ import { fonts } from '@/constants/typography';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import SegmentedControl from '@/components/SegmentedControl';
 import LeaderboardView from '@/components/friends/LeaderboardView';
-import ChatsView from '@/components/friends/ChatsView';
+import FriendsListView from '@/components/friends/FriendsListView';
 import SignInPanel from '@/components/friends/SignInPanel';
 import ProfileHeader from '@/components/friends/ProfileHeader';
 import { useAuthStore } from '@/store/useAuthStore';
 
-type Tab = 'leaderboard' | 'chats';
+type Tab = 'leaderboard' | 'friends';
 
 export default function FriendsContent() {
   const colors = useColors();
@@ -53,7 +53,7 @@ export default function FriendsContent() {
         <SegmentedControl<Tab>
           options={[
             { value: 'leaderboard', label: 'Leaderboard' },
-            { value: 'chats', label: 'Chats' },
+            { value: 'friends', label: 'Friends' },
           ]}
           value={tab}
           onChange={setTab}
@@ -61,7 +61,7 @@ export default function FriendsContent() {
       </View>
 
       <Animated.View key={tab} entering={FadeIn.duration(200)} style={styles.panel}>
-        {tab === 'leaderboard' ? <LeaderboardView /> : <ChatsView />}
+        {tab === 'leaderboard' ? <LeaderboardView /> : <FriendsListView />}
       </Animated.View>
     </AnimatedScreen>
   );

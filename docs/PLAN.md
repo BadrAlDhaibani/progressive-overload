@@ -1342,3 +1342,107 @@ Follow-ups to the Phase 1.7 social PR that didn't block its merge but improve th
 ### Known limitation
 
 - Profile-color changes don't propagate in realtime — other users see a new color only after pull-to-refresh on their chat list or leaderboard. Consistent with the app's current data-fetch model (no profile-row subscriptions anywhere). Acceptable for MVP.
+
+---
+
+# Phase 1.10: Mutual-accept friendships + friends-only leaderboard
+
+## Context
+
+Prereq for an upcoming push-notification feature ("ping friends when someone starts a workout"). The app currently has no formal friend concept — `profiles` + a public `weekly_stats` leaderboard + 1:1 `chats`, that's it. Before notifications can target "your friends," we need to define the friend graph.
+
+Decisions locked with the user:
+- **Mutual-accept** friendships (not chat-inferred, not one-way follow).
+- **Leaderboard becomes friends-only** — self + accepted friends only. The "discover random lifters" aspect is removed by design.
+- Add-friend UX mirrors the existing `app/chat/new.tsx` shape: username lookup modal + Pending Requests panel inside the Friends tab.
+- Notifications (push registration, first-set trigger, Supabase edge fn, 2-hour dedup, global send/receive toggles, per-friend mute) are a **separate future phase** and will build on top of this schema with zero changes required here.
+
+Split into two testable batches.
+
+## Progress
+
+| Batch | Status | Description |
+|-------|--------|-------------|
+| F1 | Done | Friendships backend + data access + add-friend modal |
+| F2 | Done | Friends-centric second segment + modal consolidation + polish (flicker, empty-state centering, Done button full-width, `web` platform removed from `app.json`) |
+
+---
+
+## F1: Friendships backend + data access + add-friend modal
+
+**Goal**: Two signed-in users can exchange a mutual-accept friend request via a modal. After accept, both users see each other on a now friends-only weekly leaderboard. No new tab UI yet — exercised through a temporary entry row on the existing `app/friends/add.tsx` picker.
+
+### Create
+
+- `supabase/migrations/0004_friendships.sql` — new `friendships` table (single-row-per-relationship: `requester_id`, `recipient_id`, `status in ('pending','accepted')`), expression-based unique pair index, self-friendship check, RLS policies (select: either side; insert: requester only, must be pending; update: recipient only, pending→accepted; delete: either side), `are_friends(a,b)` SECURITY DEFINER helper, `send_friend_request(target_username)` RPC with atomic lookup+dedup+insert, `leaderboard_week` view rewrite with `security_invoker = on` and friendship EXISTS clause, realtime publication add.
+- `lib/social/friends.ts` — `listFriends`, `listIncomingRequests`, `listOutgoingRequests`, `sendFriendRequest`, `acceptFriendRequest`, `declineOrCancelRequest`, `removeFriend`, `subscribeToFriendships`. Mirrors `listChats`/`subscribeToMessages` patterns from `lib/social/chats.ts`.
+- `app/friends/new.tsx` — username-lookup modal, mirrors `app/chat/new.tsx` verbatim (inputs, error plumbing, `presentation: 'modal'`). Maps the three distinct RPC exceptions to user-legible messages.
+
+### Modify
+
+- `lib/social/types.ts` — add `FriendshipStatus`, `Friendship`, `FriendRequest`, `Friend` types.
+- `app/_layout.tsx` — register `friends/new` as a modal `Stack.Screen` (sibling to the existing `friends/add`).
+- `app/friends/add.tsx` — prepend a "Send friend request" row routing to `/friends/new`. Keep existing "Search by username" (starts a chat) and share-link intact — no behavior regressions. The new row is the temp testing entry and gets removed when Batch F2 lands the Friends segment.
+
+### Decline = hard delete
+
+Declining a request is a DELETE, not a status change. A declined row serves no product purpose and blocks re-requests. If "block user" semantics become a real need, add a `user_blocks` table later — don't conflate.
+
+### Test plan (F1)
+
+1. Run `0004_friendships.sql` in Supabase SQL editor. Verify `friendships`, `are_friends`, `send_friend_request` exist; verify `leaderboard_week` was replaced.
+2. With two accounts A and B on two devices:
+   - From A: Friends tab → Add Friends → **Send friend request** → type B's username → confirm.
+   - Supabase dashboard: one row, `status='pending'`, `requester_id=A`.
+   - Leaderboard before accept: each user sees only themselves.
+   - Run `update friendships set status='accepted', accepted_at=now() where id=…` under B's JWT (or trigger from a debug button) — row flips.
+   - Pull leaderboard on both devices: both rows now appear.
+3. Negative cases surface distinct messages: self-request, duplicate outgoing, already-friends, pending-from-other-user (UI can route to accept), unknown username.
+4. Signed-out experience unchanged: Home / History / Exercises / workout flow unaffected. `syncWeeklyStats` still succeeds post-workout.
+
+---
+
+## F2: Friends-centric second segment + modal consolidation
+
+**Goal**: The second segment in `FriendsContent` becomes a single Friends list (renamed from "Chats") with inline search, an incoming-requests banner, and friend rows that open a 1:1 chat on tap. The Add Friends picker collapses to a single entry point. The standalone "New chat" modal goes away — its role is taken over by the add-friend modal.
+
+### Decisions (from review after F1 landed)
+
+- Second segment: `Chats` → **Friends**. One list, one purpose.
+- Row tap → open the 1:1 chat (create via existing `startDirectChat` if none yet).
+- Incoming requests surface as a banner section at the top of the Friends list (hard to miss).
+- The share-link card updates its deep link to `provolone://friends/new?u=…` and re-words copy to describe a friend request, not a chat start.
+- `app/chat/new.tsx` is deleted entirely. The add-by-username modal `app/friends/new.tsx` is the only username-entry flow now.
+
+### Create
+
+- `components/friends/FriendsListView.tsx` — top: "+ Add Friends" pill → `/friends/add`. Below: search `TextInput` filtering by username/display name. Below: incoming-requests banner (when non-empty) with `PendingRequestRow` entries. Below: friends list (`FriendRow`). Pull-to-refresh, `subscribeToFriendships` live refresh. Renders `SignInPanel` when signed out. Empty state: "Add a friend by username to get started" with CTA routing to `/friends/add`.
+- `components/friends/FriendRow.tsx` — `Avatar` + display name + `@username`. Tap → `startDirectChat(username)` → `router.push('/chat/{id}')`. Long-press → `Alert.alert` destructive confirm → `removeFriend`.
+- `components/friends/PendingRequestRow.tsx` — incoming variant with Accept / Decline buttons wired to `acceptFriendRequest` / `declineOrCancelRequest`.
+
+### Modify
+
+- `components/screens/FriendsContent.tsx` — `Tab` union becomes `'leaderboard' | 'friends'`. Segment label "Chats" → "Friends". Render `FriendsListView` in the friends slot.
+- `app/friends/add.tsx` — drop the F1 temporary Pending-requests section. Drop the "Send friend request" row (redundant). Change "Search by username" to route to `/friends/new`. Update share card: link becomes `provolone://friends/new?u=…`, copy: "Opening this on their phone sends you a friend request."
+- `app/_layout.tsx` — remove the `chat/new` Stack.Screen registration.
+
+### Delete
+
+- `app/chat/new.tsx` — no longer needed.
+- `components/friends/ChatsView.tsx` — replaced by `FriendsListView`.
+- `components/friends/ChatListItem.tsx` — not reused (new row has no message preview in v1).
+- `lib/social/chats.ts :: listChats` — no remaining callers after the swap.
+
+### Test plan (F2)
+
+1. Friends tab shows `Leaderboard | Friends`. "Friends" default content: search input, + Add Friends pill, list of accepted friends, and an empty-state CTA when no friends yet.
+2. Signing in on two devices: A sends a request to B via Add Friends → Search by username → Send friend request. B sees an "incoming request" banner on the Friends list without a manual refresh (realtime). B taps Accept → banner clears, A appears in B's friends list, B appears in A's friends list.
+3. Tapping a friend row opens the 1:1 chat, creating one if it didn't exist (reuses `get_or_create_direct_chat`).
+4. Search input filters the list live by substring of username or display name.
+5. Long-pressing a friend row prompts "Remove friend?"; confirming removes them from both sides' lists and drops them from the leaderboard.
+6. Share card's link is `provolone://friends/new?u=<me>`; opening it on another device lands on the add-friend modal prefilled with the username, and Send sends a request.
+7. Signed-out state still shows `SignInPanel`. Core workout flow unaffected.
+
+### Forward-compat note (for upcoming notifications phase)
+
+The friendships table is designed to absorb a `notifications_muted boolean not null default false` column later without disruption (nullable-with-default). The realtime publication + RLS shape will be exactly what the server-side push trigger reads. No debt introduced by shipping friendships without notifications.

@@ -20,7 +20,7 @@ export default function AddFriendsScreen() {
   const [copied, setCopied] = useState(false);
 
   const shareUrl = username
-    ? `provolone://chat/new?u=${encodeURIComponent(username)}`
+    ? `provolone://friends/new?u=${encodeURIComponent(username)}`
     : null;
 
   const handleCopy = useCallback(async () => {
@@ -45,7 +45,7 @@ export default function AddFriendsScreen() {
       <ScreenHeader title="Add Friends" />
       <View style={styles.body}>
         <AnimatedPressable
-          onPress={() => router.push('/chat/new')}
+          onPress={() => router.push('/friends/new')}
           containerStyle={styles.choiceWrap}
           style={styles.choice}
         >
@@ -62,7 +62,7 @@ export default function AddFriendsScreen() {
               {shareUrl}
             </Text>
             <Text style={styles.shareHint}>
-              Send this to a friend. Opening it on their phone starts a chat with you.
+              Send this to a friend. Opening it on their phone sends you a friend request.
             </Text>
             <View style={styles.shareButtons}>
               <AnimatedPressable

@@ -38,16 +38,3 @@ function formatDuration(seconds: number): string {
   return m === 0 ? `${h}h` : `${h}h ${m}m`;
 }
 
-export function formatRelativeTime(iso: string): string {
-  const then = new Date(iso).getTime();
-  const diffMs = Date.now() - then;
-  const mins = Math.floor(diffMs / 60000);
-  if (mins < 1) return 'now';
-  if (mins < 60) return `${mins}m`;
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours}h`;
-  const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d`;
-  const date = new Date(iso);
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}

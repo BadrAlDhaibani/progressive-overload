@@ -38,7 +38,11 @@
       "mcp__supabase__execute_sql",
       "mcp__supabase__apply_migration",
       "mcp__supabase__get_logs",
-      "mcp__supabase__deploy_edge_function"
+      "mcp__supabase__deploy_edge_function",
+      "Bash(echo \"EXIT=$?\")",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__get_advisors",
+      "mcp__ide__getDiagnostics"
     ]
   },
   "enableAllProjectMcpServers": true,

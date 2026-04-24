@@ -1,44 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { ChatMessage, ChatSummary, Profile } from './types';
-
-export async function listChats(currentUserId: string): Promise<ChatSummary[]> {
-  const { data: chatRows, error } = await supabase
-    .from('chats')
-    .select('id, last_message_at, chat_members!inner(user_id, profiles(id, username, display_name, avatar_url, profile_color))')
-    .order('last_message_at', { ascending: false });
-
-  if (error) throw error;
-
-  const chatIds = (chatRows ?? []).map((c: any) => c.id);
-  const previews = await fetchPreviews(chatIds);
-
-  return (chatRows ?? []).map((c: any) => {
-    const otherMember = c.chat_members.find((m: any) => m.user_id !== currentUserId);
-    const other = otherMember?.profiles ?? null;
-    return {
-      id: c.id,
-      last_message_at: c.last_message_at,
-      other: other as Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'profile_color'>,
-      preview: previews[c.id] ?? null,
-    };
-  }).filter((c) => c.other != null);
-}
-
-async function fetchPreviews(chatIds: string[]): Promise<Record<string, string>> {
-  if (chatIds.length === 0) return {};
-  const { data, error } = await supabase
-    .from('messages')
-    .select('chat_id, body, created_at')
-    .in('chat_id', chatIds)
-    .order('created_at', { ascending: false });
-  if (error) throw error;
-
-  const out: Record<string, string> = {};
-  for (const row of data ?? []) {
-    if (!(row.chat_id in out)) out[row.chat_id] = row.body;
-  }
-  return out;
-}
+import type { ChatMessage, Profile } from './types';
 
 export async function startDirectChat(username: string): Promise<string> {
   const { data, error } = await supabase.rpc('get_or_create_direct_chat', {

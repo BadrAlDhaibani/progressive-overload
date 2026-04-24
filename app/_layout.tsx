@@ -103,15 +103,15 @@ export default function RootLayout() {
             options={{ gestureEnabled: true }}
           />
           <Stack.Screen
-            name="chat/new"
-            options={{ presentation: 'modal', gestureEnabled: true }}
-          />
-          <Stack.Screen
             name="settings/username"
             options={{ presentation: 'modal', gestureEnabled: true }}
           />
           <Stack.Screen
             name="friends/add"
+            options={{ presentation: 'modal', gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="friends/new"
             options={{ presentation: 'modal', gestureEnabled: true }}
           />
         </Stack>

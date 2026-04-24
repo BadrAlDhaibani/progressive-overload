@@ -21,13 +21,6 @@ export type LeaderboardRow = {
   duration_seconds: number;
 };
 
-export type ChatSummary = {
-  id: string;
-  last_message_at: string;
-  other: Pick<Profile, 'id' | 'username' | 'display_name' | 'avatar_url' | 'profile_color'>;
-  preview: string | null;
-};
-
 export type ChatMessage = {
   id: string;
   chat_id: string;
@@ -40,4 +33,34 @@ export type WeeklyStatsInput = {
   workouts_count: number;
   volume_lbs: number;
   duration_seconds: number;
+};
+
+export type FriendshipStatus = 'pending' | 'accepted';
+
+export type Friendship = {
+  id: string;
+  requester_id: string;
+  recipient_id: string;
+  status: FriendshipStatus;
+  created_at: string;
+  updated_at: string;
+  accepted_at: string | null;
+};
+
+export type FriendProfile = Pick<
+  Profile,
+  'id' | 'username' | 'display_name' | 'avatar_url' | 'profile_color'
+>;
+
+export type FriendRequest = {
+  id: string;
+  direction: 'incoming' | 'outgoing';
+  created_at: string;
+  other: FriendProfile;
+};
+
+export type Friend = {
+  friendship_id: string;
+  since: string;
+  profile: FriendProfile;
 };
