@@ -15,11 +15,13 @@
     },
     "ios": {
       "bundleIdentifier": "app.provolone",
-      "buildNumber": "5",
+      "buildNumber": "7",
       "supportsTablet": false,
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
