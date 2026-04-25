@@ -43,7 +43,8 @@
       "mcp__supabase__list_tables",
       "mcp__supabase__get_advisors",
       "mcp__ide__getDiagnostics",
-      "Bash(echo \"exit=$?\")"
+      "Bash(echo \"exit=$?\")",
+      "Bash(npm test *)"
     ]
   },
   "enableAllProjectMcpServers": true,

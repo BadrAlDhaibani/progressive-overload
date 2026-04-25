@@ -125,4 +125,4 @@ After each batch, summarize what changed and what to test. I'll verify, commit, 
 - `docs/SCOPE.md` — Full MVP scope document with feature tiers, screen breakdown, and development phases.
 - `docs/PLAN.md` — Living roadmap: in-progress / next up / backlog / deferred. Source of truth for what to work on next.
 - `docs/PLAN.archive.md` — Per-batch historical record of every shipped feature, by phase. Read for context on prior decisions.
-- `docs/LEARNINGS.md` — Append-only one-liners for tactical gotchas (`onEndEditing` over `onChangeText`, `set_order` ordering, `verify_jwt = false`, etc.). Append via `/capture-pattern` once it lands.
+- `docs/LEARNINGS.md` — Append-only one-liners for tactical gotchas (`onEndEditing` over `onChangeText`, `set_order` ordering, `verify_jwt = false`, etc.). Append via `/capture-pattern` (also auto-invoked when a non-obvious lesson surfaces mid-session).

@@ -12,20 +12,16 @@ App is feature-complete for the offline MVP and the optional social tier (Friend
 
 ## In progress
 
-- **WI: Workflow improvements** — internal tooling overhaul, no app changes.
-  - WI-A — `/review-batch` + `/finish-batch` project skills ✓ shipped
-  - WI-B — PLAN.md / PLAN.archive.md / LEARNINGS.md split (this batch)
-  - WI-C — Targeted unit tests for `db/` + `lib/social/` + Jest config + CI workflow
-  - WI-D — Optional `/capture-pattern` skill + Stop hook for self-improving loop
+- **N2: Push-notification opt-out UI.** Backend already in place (`notification_prefs`, `friendships.mute_by_*`). Two global switches (send, receive) in settings + per-friend mute via long-press menu on `FriendRow`. No native code; iterable in dev client. Small batch.
 
 ## Next up
 
-- **N2: Push-notification opt-out UI.** Backend already in place (`notification_prefs`, `friendships.mute_by_*`). Two global switches (send, receive) in settings + per-friend mute via long-press menu on `FriendRow`. No native code; iterable in dev client. Small batch.
 - **S6: App Store preparation.** Host privacy policy publicly, fill App Store Connect metadata, screenshots ×5 (6.7" + 6.1"), App Privacy declaration, demo account for review notes, fill `eas.json` with `appleId` / `ascAppId` / `appleTeamId`. Privacy-policy draft + store-listing copy + review-notes template were in the pre-WI-B PLAN.md — retrieve via `git log --diff-filter=D --follow -p -- docs/PLAN.md` or check the commit that introduced WI-B's PLAN.md split.
 - **S7: Production build & submission.** `EXPO_NO_CAPABILITY_SYNC=1 eas build --profile production --platform ios && eas submit --platform ios --latest`. Pre-flight checklist: `app.json` `name: "Provolone"`, `version: "1.0.0"`, bundle id set, `userInterfaceStyle`, branded splash + icon. Bump `buildNumber` for every rebuild.
 
 ## Backlog
 
+- **WI-D-stop-hook**: optional Stop-hook in `.claude/settings.json` that auto-runs `/capture-pattern` review at end-of-session for a self-improving loop. Deferred from WI-D — the manual + autonomous skill alone is probably enough; revisit if learnings stop accumulating.
 - **N1 post-launch follow-ups** (one bundled batch once real traffic flows):
   - Prune `push_tokens` on `DeviceNotRegistered` Expo tickets (`notify-workout-start/index.ts:180-186`).
   - Clear orphan `push_tokens` on app launch — `lib/notifications.ts:19` `currentToken` module state misses force-quit + sign-out edge case.

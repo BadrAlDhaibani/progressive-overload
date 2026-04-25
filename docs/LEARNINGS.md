@@ -2,7 +2,7 @@
 
 Append-only one-liners for tactical gotchas, edge cases, and non-obvious decisions that have already burned us. Distinct from `CLAUDE.md` (policy / conventions) and [PLAN.md](PLAN.md) (roadmap).
 
-Add new entries via `/capture-pattern` once that skill lands. Until then, append by hand under the right section.
+Add new entries via `/capture-pattern` (the skill picks the right section, dedupes against existing entries, and appends in the standard format).
 
 ---
 
@@ -54,3 +54,9 @@ Add new entries via `/capture-pattern` once that skill lands. Until then, append
 - **Use `EXPO_NO_CAPABILITY_SYNC=1 eas build` on production.** Without it EAS tries to disable Sign in with Apple on the App ID, which Apple rejects once real users have signed in via SIWA.
 - **`EXPO_PUBLIC_SUPABASE_*` belongs in `.env`, not `app.json`.** The env-var prefix matters — only `EXPO_PUBLIC_*` is exposed to the client bundle. Keys in `app.json` would commit to git.
 - **APNs Auth Key (.p8) on Expo: enable Sandbox & Production, Team Scoped.** Keep it separate from the Sign in with Apple key for independent revocation.
+
+## Testing
+
+- **Tests live in `<dir>/__tests__/*.test.ts` colocated next to the source they exercise.** See `lib/social/__tests__/` and `utils/__tests__/`. Don't create a top-level `test/` or `__tests__/` directory.
+- **Pure-function modules are the test targets; SQLite (`db/`) and Supabase I/O paths are intentionally not covered.** The jest config uses `testEnvironment: 'node'` with the `ts-jest` preset — there's no React Native transform, no expo-sqlite mock, no Supabase test harness. Adding component or DB tests means upgrading the preset (likely `jest-expo`) first.
+- **CI runs `npm test` + `npx tsc --noEmit` on push/PR to `main`.** See `.github/workflows/test.yml`. New code must keep both green; a failing type-check blocks merge even if jest passes.
