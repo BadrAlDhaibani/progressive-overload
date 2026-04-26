@@ -3,11 +3,7 @@ import { seedDatabase } from './seed';
 
 export const db = openDatabaseSync('provolone.db');
 
-export function initDatabase(): void {
-  db.execSync('PRAGMA foreign_keys = ON');
-  db.execSync('PRAGMA journal_mode = WAL');
-
-  db.execSync(`
+export const SCHEMA_DDL = `
     CREATE TABLE IF NOT EXISTS exercises (
       id            INTEGER PRIMARY KEY AUTOINCREMENT,
       name          TEXT NOT NULL,
@@ -55,7 +51,12 @@ export function initDatabase(): void {
     CREATE INDEX IF NOT EXISTS idx_sets_workout ON sets(workout_id);
     CREATE INDEX IF NOT EXISTS idx_sets_exercise ON sets(exercise_id);
     CREATE INDEX IF NOT EXISTS idx_workouts_started ON workouts(started_at);
-  `);
+  `;
+
+export function initDatabase(): void {
+  db.execSync('PRAGMA foreign_keys = ON');
+  db.execSync('PRAGMA journal_mode = WAL');
+  db.execSync(SCHEMA_DDL);
 
   const result = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
   if (result && result.user_version === 0) {
