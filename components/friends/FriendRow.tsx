@@ -9,6 +9,7 @@ import AnimatedPressable from '@/components/AnimatedPressable';
 import Avatar from './Avatar';
 import { removeFriend } from '@/lib/social/friends';
 import { startDirectChat } from '@/lib/social/chats';
+import { setFriendMute } from '@/lib/social/notifications';
 import type { Friend } from '@/lib/social/types';
 
 interface Props {
@@ -38,26 +39,47 @@ export default function FriendRow({ friend, onChange }: Props) {
 
   const handleLongPress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    Alert.alert(
-      `Remove @${friend.profile.username}?`,
-      "You'll stop seeing each other on the leaderboard.",
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Remove',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await removeFriend(friend.friendship_id);
-              onChange();
-            } catch (e: any) {
-              Alert.alert('Could not remove', e?.message ?? 'Try again.');
-            }
-          },
+    const muteLabel = friend.is_muted ? 'Unmute notifications' : 'Mute notifications';
+    Alert.alert(`@${friend.profile.username}`, undefined, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: muteLabel,
+        onPress: async () => {
+          try {
+            await setFriendMute(friend.friendship_id, !friend.is_muted);
+            onChange();
+          } catch (e: any) {
+            Alert.alert('Could not update', e?.message ?? 'Try again.');
+          }
         },
-      ]
-    );
-  }, [friend.friendship_id, friend.profile.username, onChange]);
+      },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          Alert.alert(
+            `Remove @${friend.profile.username}?`,
+            "You'll stop seeing each other on the leaderboard.",
+            [
+              { text: 'Cancel', style: 'cancel' },
+              {
+                text: 'Remove',
+                style: 'destructive',
+                onPress: async () => {
+                  try {
+                    await removeFriend(friend.friendship_id);
+                    onChange();
+                  } catch (e: any) {
+                    Alert.alert('Could not remove', e?.message ?? 'Try again.');
+                  }
+                },
+              },
+            ],
+          );
+        },
+      },
+    ]);
+  }, [friend.friendship_id, friend.is_muted, friend.profile.username, onChange]);
 
   return (
     <AnimatedPressable
@@ -84,6 +106,11 @@ export default function FriendRow({ friend, onChange }: Props) {
           @{friend.profile.username}
         </Text>
       </View>
+      {friend.is_muted ? (
+        <View style={styles.mutedPill}>
+          <Text style={styles.mutedPillText}>Muted</Text>
+        </View>
+      ) : null}
       {busy ? (
         <ActivityIndicator size="small" color={colors.textMuted} />
       ) : null}
@@ -117,5 +144,17 @@ const createStyles = (colors: Colors) =>
       fontFamily: fonts.regular,
       color: colors.textMuted,
       marginTop: 2,
+    },
+    mutedPill: {
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 6,
+      backgroundColor: colors.bgMuted,
+    },
+    mutedPillText: {
+      fontSize: 11,
+      fontFamily: fonts.medium,
+      color: colors.textMuted,
+      letterSpacing: 0.3,
     },
   });

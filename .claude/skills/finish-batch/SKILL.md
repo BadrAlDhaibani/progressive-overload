@@ -54,7 +54,7 @@ Conventions:
 Show the diff to apply (don't apply it — surface as a code block). Two cases:
 
 **If PLAN.md is the slim/post-cleanup format:**
-- Move the current batch from `## In progress` to a one-line entry in `docs/PLAN.archive.md` with format `- <id>: <one-line summary> (commit <will-be-filled>)`.
+- Move the current batch from `## In progress` to a one-line entry in `docs/PLAN.archive.md` with format `- <id>: <one-line summary>`. Don't add a commit SHA — the archive header already points to `git log` for exact diffs, and `git log --grep="<id>"` recovers it when needed.
 - Promote the next item from `## Backlog` into `## In progress` (or `## Next up` if not started yet).
 
 **If PLAN.md is still the legacy format (1500+ lines):**
@@ -83,5 +83,3 @@ Show the diff to apply (don't apply it — surface as a code block). Two cases:
 + <new line>
 \`\`\`
 ```
-
-After the user commits, the actual short SHA can replace `<will-be-filled>` in the archive entry.

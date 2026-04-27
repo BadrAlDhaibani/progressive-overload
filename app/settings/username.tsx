@@ -1,10 +1,11 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   TouchableWithoutFeedback,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 
 import { AVATAR_PALETTE, useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
@@ -21,6 +23,11 @@ import Avatar from '@/components/friends/Avatar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { updateProfileColor, updateUsername } from '@/lib/social/profiles';
 import { isValidUsername, normalizeUsername } from '@/lib/social/username';
+import {
+  getNotificationPrefs,
+  setNotificationPref,
+  type NotificationPrefs,
+} from '@/lib/social/notifications';
 
 const COLOR_OPTIONS: Array<{ key: string; color: string | null }> = [
   { key: 'default', color: null },
@@ -43,8 +50,39 @@ export default function UsernameScreen() {
   const [savingBusy, setSavingBusy] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [pendingColor, setPendingColor] = useState<string | null | undefined>(undefined);
+  const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
 
   const busy = savingBusy || deleteBusy;
+
+  useEffect(() => {
+    if (!profile) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const next = await getNotificationPrefs(profile.id);
+        if (!cancelled) setPrefs(next);
+      } catch {
+        if (!cancelled) setPrefs({ send_enabled: true, receive_enabled: true });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile?.id]);
+
+  const handleTogglePref = useCallback(
+    (field: 'send_enabled' | 'receive_enabled', next: boolean) => {
+      if (!profile || !prefs) return;
+      const previous = prefs;
+      Haptics.selectionAsync();
+      setPrefs({ ...previous, [field]: next });
+      setNotificationPref(profile.id, field, next).catch((e: any) => {
+        setPrefs(previous);
+        Alert.alert('Could not save', e?.message ?? 'Please try again.');
+      });
+    },
+    [profile, prefs],
+  );
 
   const savedColor = profile?.profile_color ?? null;
   const currentColor = pendingColor !== undefined ? pendingColor : savedColor;
@@ -195,6 +233,39 @@ export default function UsernameScreen() {
               </View>
             </View>
 
+            <View style={styles.notifSection}>
+              <Text style={styles.label}>Notifications</Text>
+              <View style={styles.notifGroup}>
+                <View style={styles.notifRow}>
+                  <View style={styles.notifText}>
+                    <Text style={styles.notifTitle}>Send to friends</Text>
+                    <Text style={styles.notifSubtitle}>
+                      Notify friends when you start a workout
+                    </Text>
+                  </View>
+                  <Switch
+                    value={prefs?.send_enabled ?? true}
+                    onValueChange={(v) => handleTogglePref('send_enabled', v)}
+                    disabled={!prefs || busy}
+                  />
+                </View>
+                <View style={styles.notifDivider} />
+                <View style={styles.notifRow}>
+                  <View style={styles.notifText}>
+                    <Text style={styles.notifTitle}>Receive from friends</Text>
+                    <Text style={styles.notifSubtitle}>
+                      Get notified when friends start a workout
+                    </Text>
+                  </View>
+                  <Switch
+                    value={prefs?.receive_enabled ?? true}
+                    onValueChange={(v) => handleTogglePref('receive_enabled', v)}
+                    disabled={!prefs || busy}
+                  />
+                </View>
+              </View>
+            </View>
+
             <View style={styles.spacer} />
 
             <AnimatedPressable
@@ -310,6 +381,41 @@ const createStyles = (colors: Colors) =>
       borderStyle: 'dashed',
       borderColor: colors.textMuted,
       backgroundColor: 'transparent',
+    },
+    notifSection: {
+      marginTop: 32,
+    },
+    notifGroup: {
+      backgroundColor: colors.bgMuted,
+      borderRadius: 12,
+      overflow: 'hidden',
+    },
+    notifRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      gap: 12,
+    },
+    notifText: {
+      flex: 1,
+      minWidth: 0,
+    },
+    notifTitle: {
+      fontSize: 15,
+      fontFamily: fonts.semiBold,
+      color: colors.text,
+    },
+    notifSubtitle: {
+      fontSize: 13,
+      fontFamily: fonts.regular,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    notifDivider: {
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.bg,
+      marginHorizontal: 14,
     },
     spacer: {
       flex: 1,

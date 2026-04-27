@@ -8,6 +8,7 @@ export async function listFriends(currentUserId: string): Promise<Friend[]> {
     .from('friendships')
     .select(
       `id, created_at, accepted_at, requester_id, recipient_id,
+       mute_by_requester, mute_by_recipient,
        requester:profiles!requester_id(${PROFILE_COLS}),
        recipient:profiles!recipient_id(${PROFILE_COLS})`
     )
@@ -23,6 +24,7 @@ export async function listFriends(currentUserId: string): Promise<Friend[]> {
         friendship_id: row.id,
         since: row.accepted_at ?? row.created_at,
         profile: other,
+        is_muted: Boolean(isRequester ? row.mute_by_requester : row.mute_by_recipient),
       } as Friend;
     })
     .filter((f): f is Friend => f !== null);

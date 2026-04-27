@@ -63,4 +63,5 @@ export type Friend = {
   friendship_id: string;
   since: string;
   profile: FriendProfile;
+  is_muted: boolean;
 };
