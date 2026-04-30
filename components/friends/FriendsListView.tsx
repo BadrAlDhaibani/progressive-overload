@@ -21,6 +21,7 @@ import {
   listIncomingRequests,
   subscribeToFriendships,
 } from '@/lib/social/friends';
+import { getUnreadChatCounts, subscribeToAllMyMessages } from '@/lib/social/chats';
 import type { Friend, FriendRequest } from '@/lib/social/types';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -32,22 +33,34 @@ export default function FriendsListView() {
 
   const [friends, setFriends] = useState<Friend[]>([]);
   const [incoming, setIncoming] = useState<FriendRequest[]>([]);
+  const [unreadByPartner, setUnreadByPartner] = useState<Record<string, number>>({});
   const [refreshing, setRefreshing] = useState(false);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
+
+  const refreshUnread = useCallback(async () => {
+    try {
+      const counts = await getUnreadChatCounts();
+      setUnreadByPartner(counts);
+    } catch {
+      // Silent — unread counts are non-critical and shouldn't block the list.
+    }
+  }, []);
 
   const load = useCallback(async ({ isRefresh = false }: { isRefresh?: boolean } = {}) => {
     if (!myId) return;
     if (isRefresh) setRefreshing(true);
     setError(null);
     try {
-      const [nextFriends, nextIncoming] = await Promise.all([
+      const [nextFriends, nextIncoming, nextUnread] = await Promise.all([
         listFriends(myId),
         listIncomingRequests(myId),
+        getUnreadChatCounts().catch(() => ({} as Record<string, number>)),
       ]);
       setFriends(nextFriends);
       setIncoming(nextIncoming);
+      setUnreadByPartner(nextUnread);
       setHasLoadedOnce(true);
     } catch (e: any) {
       setError(e?.message ?? 'Could not load friends.');
@@ -69,6 +82,14 @@ export default function FriendsListView() {
       unsubscribe();
     };
   }, [myId, load]);
+
+  useEffect(() => {
+    if (!myId) return;
+    const unsubscribe = subscribeToAllMyMessages(() => refreshUnread());
+    return () => {
+      unsubscribe();
+    };
+  }, [myId, refreshUnread]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -162,7 +183,13 @@ export default function FriendsListView() {
           contentContainerStyle={styles.list}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          renderItem={({ item }) => <FriendRow friend={item} onChange={load} />}
+          renderItem={({ item }) => (
+            <FriendRow
+              friend={item}
+              onChange={load}
+              unreadCount={unreadByPartner[item.profile.id] ?? 0}
+            />
+          )}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

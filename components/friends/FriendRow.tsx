@@ -15,14 +15,16 @@ import type { Friend } from '@/lib/social/types';
 interface Props {
   friend: Friend;
   onChange: () => void;
+  unreadCount?: number;
 }
 
-export default function FriendRow({ friend, onChange }: Props) {
+export default function FriendRow({ friend, onChange, unreadCount = 0 }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const label = friend.profile.display_name ?? friend.profile.username;
+  const hasUnread = unreadCount > 0;
 
   const handlePress = useCallback(async () => {
     if (busy) return;
@@ -95,17 +97,24 @@ export default function FriendRow({ friend, onChange }: Props) {
       />
       <View style={styles.middle}>
         {friend.profile.display_name ? (
-          <Text style={styles.name} numberOfLines={1}>
+          <Text
+            style={[styles.name, hasUnread && styles.nameUnread]}
+            numberOfLines={1}
+          >
             {friend.profile.display_name}
           </Text>
         ) : null}
         <Text
-          style={friend.profile.display_name ? styles.handle : styles.name}
+          style={[
+            friend.profile.display_name ? styles.handle : styles.name,
+            hasUnread && (friend.profile.display_name ? styles.handleUnread : styles.nameUnread),
+          ]}
           numberOfLines={1}
         >
           @{friend.profile.username}
         </Text>
       </View>
+      {hasUnread ? <View style={styles.unreadDot} /> : null}
       {friend.is_muted ? (
         <View style={styles.mutedPill}>
           <Text style={styles.mutedPillText}>Muted</Text>
@@ -139,11 +148,24 @@ const createStyles = (colors: Colors) =>
       fontFamily: fonts.semiBold,
       color: colors.text,
     },
+    nameUnread: {
+      fontFamily: fonts.bold,
+    },
     handle: {
       fontSize: 13,
       fontFamily: fonts.regular,
       color: colors.textMuted,
       marginTop: 2,
+    },
+    handleUnread: {
+      fontFamily: fonts.semiBold,
+      color: colors.textSecondary,
+    },
+    unreadDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.primary,
     },
     mutedPill: {
       paddingHorizontal: 8,

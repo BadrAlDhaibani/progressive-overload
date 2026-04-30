@@ -47,6 +47,7 @@ Add new entries via `/capture-pattern` (the skill picks the right section, dedup
 - **Migration 0005's INFO advisor for `notifications_sent` is intentional.** RLS enabled, zero policies — service-role-only dedup table by design.
 - **Trigger functions need `set search_path = public`.** Migration `0005_fix_trigger_search_path` exists because the original trigger functions didn't pin it; advisor flagged the warning.
 - **`notifications_sent` only marks dedup on successful Expo tickets.** Failed sends remain eligible for retry on the next workout.
+- **Realtime `postgres_changes` honors RLS — no client-side filter needed for per-user fan-out.** A single unfiltered subscription on a table with RLS only delivers rows the auth user is allowed to read. See `subscribeToAllMyMessages` in `lib/social/chats.ts` (one channel for every chat the user is in) and `subscribeToFriendships` in `lib/social/friends.ts`. Don't reach for `filter: chat_id=eq.<id>` per-channel just to scope to a user.
 
 ## EAS / TestFlight / build
 

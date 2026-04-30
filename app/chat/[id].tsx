@@ -18,6 +18,7 @@ import MessageInput from '@/components/friends/MessageInput';
 import {
   fetchMessages,
   getChatPartner,
+  markChatRead,
   sendMessage,
   subscribeToMessages,
 } from '@/lib/social/chats';
@@ -51,9 +52,11 @@ export default function ChatScreen() {
       if (cancelled) return;
       setMessages(m);
       setPartner(p);
+      markChatRead(chatId).catch(() => {});
     })();
     const unsubscribe = subscribeToMessages(chatId, (m) => {
       setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
+      if (m.sender_id !== myId) markChatRead(chatId).catch(() => {});
     });
     return () => {
       cancelled = true;

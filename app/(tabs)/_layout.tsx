@@ -13,6 +13,8 @@ import ExercisesContent from '@/components/screens/ExercisesContent';
 import FriendsContent from '@/components/screens/FriendsContent';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { useTabNavStore, tabNameToIndex } from '@/store/useTabNavStore';
+import { useAuthStore } from '@/store/useAuthStore';
+import { getUnreadChatCounts, subscribeToAllMyMessages } from '@/lib/social/chats';
 
 type TabConfig = {
   title: string;
@@ -65,6 +67,39 @@ export default function TabLayout() {
     useTabNavStore.getState().consumeTab();
   }, [pendingTab]);
 
+  // Friends-tab unread dot. Only meaningful when signed in.
+  const userId = useAuthStore((s) => s.userId);
+  const [hasUnread, setHasUnread] = useState(false);
+
+  const refreshUnread = useCallback(async () => {
+    try {
+      const counts = await getUnreadChatCounts();
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      setHasUnread(total > 0);
+    } catch {
+      // Silent — non-critical.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!userId) {
+      setHasUnread(false);
+      return;
+    }
+    refreshUnread();
+    const unsubscribe = subscribeToAllMyMessages(() => refreshUnread());
+    return () => {
+      unsubscribe();
+    };
+  }, [userId, refreshUnread]);
+
+  // Refetch when the user lands on Friends — reads will have fired and
+  // server counts will have dropped.
+  useEffect(() => {
+    if (!userId) return;
+    if (tabs[activeIndex]?.title === 'Friends') refreshUnread();
+  }, [activeIndex, userId, refreshUnread]);
+
   return (
     <View style={styles.container}>
       <PagerView
@@ -94,6 +129,7 @@ export default function TabLayout() {
             {tabs.map((tab, index) => {
               const isActive = index === activeIndex;
               const tint = isActive ? colors.primary : colors.textMuted;
+              const showUnreadDot = tab.title === 'Friends' && hasUnread && !isActive;
               return (
                 <AnimatedPressable
                   key={index}
@@ -104,7 +140,10 @@ export default function TabLayout() {
                   accessibilityRole="tab"
                   accessibilityState={{ selected: isActive }}
                 >
-                  <Ionicons name={tab.icon} size={26} color={tint} />
+                  <View style={styles.iconWrap}>
+                    <Ionicons name={tab.icon} size={26} color={tint} />
+                    {showUnreadDot ? <View style={styles.tabUnreadDot} /> : null}
+                  </View>
                 </AnimatedPressable>
               );
             })}
@@ -159,5 +198,22 @@ const createStyles = (colors: Colors) =>
       height: '100%',
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    iconWrap: {
+      width: 26,
+      height: 26,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tabUnreadDot: {
+      position: 'absolute',
+      top: -1,
+      right: -3,
+      width: 9,
+      height: 9,
+      borderRadius: 4.5,
+      backgroundColor: colors.primary,
+      borderWidth: 1.5,
+      borderColor: colors.bg,
     },
   });

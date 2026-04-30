@@ -58,3 +58,36 @@ export function subscribeToMessages(chatId: string, onMessage: (m: ChatMessage) 
     supabase.removeChannel(channel);
   };
 }
+
+export async function markChatRead(chatId: string): Promise<void> {
+  const { error } = await supabase.rpc('mark_chat_read', { _chat_id: chatId });
+  if (error) throw error;
+}
+
+export async function getUnreadChatCounts(): Promise<Record<string, number>> {
+  const { data, error } = await supabase.rpc('get_unread_chat_counts');
+  if (error) throw error;
+  const map: Record<string, number> = {};
+  for (const row of (data ?? []) as Array<{ partner_id: string; unread_count: number }>) {
+    if (row.unread_count > 0) map[row.partner_id] = row.unread_count;
+  }
+  return map;
+}
+
+// RLS scopes the realtime stream to messages in chats the caller is a member
+// of, so a single unfiltered subscription on the messages table is sufficient.
+// Mirrors the subscribeToFriendships pattern in lib/social/friends.ts.
+export function subscribeToAllMyMessages(onInsert: (m: ChatMessage) => void) {
+  const channel = supabase
+    .channel('messages:all')
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'messages' },
+      (payload) => onInsert(payload.new as ChatMessage)
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}

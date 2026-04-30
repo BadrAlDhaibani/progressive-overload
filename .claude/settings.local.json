@@ -52,7 +52,8 @@
       "Read(//tmp/**)",
       "Bash(cygpath -w /tmp/extract_tools.py)",
       "Bash(cygpath -w /tmp/recent_transcripts.txt)",
-      "Bash(mount)"
+      "Bash(mount)",
+      "Skill(capture-pattern)"
     ]
   },
   "enableAllProjectMcpServers": true,
