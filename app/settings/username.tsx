@@ -1,14 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Switch,
   Text,
   TextInput,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +17,7 @@ import { AVATAR_PALETTE, useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import ScreenHeader from '@/components/friends/ScreenHeader';
 import AnimatedPressable from '@/components/AnimatedPressable';
+import DismissKeyboardView from '@/components/DismissKeyboardView';
 import Avatar from '@/components/friends/Avatar';
 import { useAuthStore } from '@/store/useAuthStore';
 import { updateProfileColor, updateUsername } from '@/lib/social/profiles';
@@ -173,121 +172,119 @@ export default function UsernameScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? insets.top : 0}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.body}>
-            <Text style={styles.label}>Your username</Text>
-            <View style={styles.inputWrap}>
-              <Text style={styles.prefix}>@</Text>
-              <TextInput
-                style={styles.input}
-                value={value}
-                onChangeText={(t) => {
-                  setValue(t);
-                  setError(null);
-                }}
-                autoCapitalize="none"
-                autoCorrect={false}
-                maxLength={24}
-                returnKeyType="done"
-                onSubmitEditing={handleSave}
+        <DismissKeyboardView style={styles.body}>
+          <Text style={styles.label}>Your username</Text>
+          <View style={styles.inputWrap}>
+            <Text style={styles.prefix}>@</Text>
+            <TextInput
+              style={styles.input}
+              value={value}
+              onChangeText={(t) => {
+                setValue(t);
+                setError(null);
+              }}
+              autoCapitalize="none"
+              autoCorrect={false}
+              maxLength={24}
+              returnKeyType="done"
+              onSubmitEditing={handleSave}
+            />
+          </View>
+          {error ? (
+            <Text style={styles.error}>{error}</Text>
+          ) : (
+            <Text style={styles.hint}>3–24 chars. Letters, numbers, and underscores.</Text>
+          )}
+
+          <View style={styles.colorSection}>
+            <Text style={styles.label}>Profile color</Text>
+            <View style={styles.previewRow}>
+              <Avatar
+                seed={profile?.id ?? ''}
+                label={profile?.username}
+                size={56}
+                color={currentColor}
               />
             </View>
-            {error ? (
-              <Text style={styles.error}>{error}</Text>
-            ) : (
-              <Text style={styles.hint}>3–24 chars. Letters, numbers, and underscores.</Text>
-            )}
+            <View style={styles.swatchRow}>
+              {COLOR_OPTIONS.map(({ key, color }) => {
+                const isSelected = currentColor === color;
+                const isDefault = color === null;
+                return (
+                  <AnimatedPressable
+                    key={key}
+                    onPress={() => handlePickColor(color)}
+                    disabled={busy}
+                    style={[styles.swatchWrap, isSelected && styles.swatchWrapSelected]}
+                  >
+                    <View
+                      style={[
+                        styles.swatch,
+                        isDefault
+                          ? styles.swatchDefault
+                          : { backgroundColor: color as string },
+                      ]}
+                    />
+                  </AnimatedPressable>
+                );
+              })}
+            </View>
+          </View>
 
-            <View style={styles.colorSection}>
-              <Text style={styles.label}>Profile color</Text>
-              <View style={styles.previewRow}>
-                <Avatar
-                  seed={profile?.id ?? ''}
-                  label={profile?.username}
-                  size={56}
-                  color={currentColor}
+          <View style={styles.notifSection}>
+            <Text style={styles.label}>Notifications</Text>
+            <View style={styles.notifGroup}>
+              <View style={styles.notifRow}>
+                <View style={styles.notifText}>
+                  <Text style={styles.notifTitle}>Send to friends</Text>
+                  <Text style={styles.notifSubtitle}>
+                    Notify friends when you start a workout
+                  </Text>
+                </View>
+                <Switch
+                  value={prefs?.send_enabled ?? true}
+                  onValueChange={(v) => handleTogglePref('send_enabled', v)}
+                  disabled={!prefs || busy}
                 />
               </View>
-              <View style={styles.swatchRow}>
-                {COLOR_OPTIONS.map(({ key, color }) => {
-                  const isSelected = currentColor === color;
-                  const isDefault = color === null;
-                  return (
-                    <AnimatedPressable
-                      key={key}
-                      onPress={() => handlePickColor(color)}
-                      disabled={busy}
-                      style={[styles.swatchWrap, isSelected && styles.swatchWrapSelected]}
-                    >
-                      <View
-                        style={[
-                          styles.swatch,
-                          isDefault
-                            ? styles.swatchDefault
-                            : { backgroundColor: color as string },
-                        ]}
-                      />
-                    </AnimatedPressable>
-                  );
-                })}
+              <View style={styles.notifDivider} />
+              <View style={styles.notifRow}>
+                <View style={styles.notifText}>
+                  <Text style={styles.notifTitle}>Receive from friends</Text>
+                  <Text style={styles.notifSubtitle}>
+                    Get notified when friends start a workout
+                  </Text>
+                </View>
+                <Switch
+                  value={prefs?.receive_enabled ?? true}
+                  onValueChange={(v) => handleTogglePref('receive_enabled', v)}
+                  disabled={!prefs || busy}
+                />
               </View>
             </View>
-
-            <View style={styles.notifSection}>
-              <Text style={styles.label}>Notifications</Text>
-              <View style={styles.notifGroup}>
-                <View style={styles.notifRow}>
-                  <View style={styles.notifText}>
-                    <Text style={styles.notifTitle}>Send to friends</Text>
-                    <Text style={styles.notifSubtitle}>
-                      Notify friends when you start a workout
-                    </Text>
-                  </View>
-                  <Switch
-                    value={prefs?.send_enabled ?? true}
-                    onValueChange={(v) => handleTogglePref('send_enabled', v)}
-                    disabled={!prefs || busy}
-                  />
-                </View>
-                <View style={styles.notifDivider} />
-                <View style={styles.notifRow}>
-                  <View style={styles.notifText}>
-                    <Text style={styles.notifTitle}>Receive from friends</Text>
-                    <Text style={styles.notifSubtitle}>
-                      Get notified when friends start a workout
-                    </Text>
-                  </View>
-                  <Switch
-                    value={prefs?.receive_enabled ?? true}
-                    onValueChange={(v) => handleTogglePref('receive_enabled', v)}
-                    disabled={!prefs || busy}
-                  />
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.spacer} />
-
-            <AnimatedPressable
-              onPress={() => {
-                signOut();
-                router.back();
-              }}
-              disabled={busy}
-              style={styles.signOutRow}
-            >
-              <Text style={styles.signOutText}>Sign out</Text>
-            </AnimatedPressable>
-
-            <AnimatedPressable
-              onPress={handleDeleteAccount}
-              disabled={busy}
-              style={styles.deleteAccountRow}
-            >
-              <Text style={styles.deleteAccountText}>Delete account</Text>
-            </AnimatedPressable>
           </View>
-        </TouchableWithoutFeedback>
+
+          <View style={styles.spacer} />
+
+          <AnimatedPressable
+            onPress={() => {
+              signOut();
+              router.back();
+            }}
+            disabled={busy}
+            style={styles.signOutRow}
+          >
+            <Text style={styles.signOutText}>Sign out</Text>
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            onPress={handleDeleteAccount}
+            disabled={busy}
+            style={styles.deleteAccountRow}
+          >
+            <Text style={styles.deleteAccountText}>Delete account</Text>
+          </AnimatedPressable>
+        </DismissKeyboardView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

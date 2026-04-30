@@ -45,7 +45,8 @@
       "mcp__ide__getDiagnostics",
       "Bash(echo \"exit=$?\")",
       "Bash(npm test *)",
-      "Bash(npx jest *)"
+      "Bash(npx jest *)",
+      "Bash(echo \"Exit: $?\")"
     ]
   },
   "enableAllProjectMcpServers": true,

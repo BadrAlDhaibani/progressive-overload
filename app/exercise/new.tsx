@@ -21,6 +21,7 @@ import { equipmentOptions } from '@/constants/equipment';
 import { fonts } from '@/constants/typography';
 import { insertCustomExercise } from '@/db/exercises';
 import AnimatedPressable from '@/components/AnimatedPressable';
+import DismissKeyboardView from '@/components/DismissKeyboardView';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 
 export default function NewExerciseScreen() {
@@ -68,7 +69,7 @@ export default function NewExerciseScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.body}>
+        <DismissKeyboardView style={[styles.flex, styles.body]}>
           <Text style={styles.fieldLabel}>Name</Text>
           <TextInput
             style={styles.input}
@@ -165,7 +166,7 @@ export default function NewExerciseScreen() {
               <Text style={styles.ctaText}>Add</Text>
             </View>
           </AnimatedPressable>
-        </View>
+        </DismissKeyboardView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

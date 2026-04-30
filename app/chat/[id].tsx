@@ -96,6 +96,8 @@ export default function ChatScreen() {
           data={messages}
           keyExtractor={(m) => m.id}
           contentContainerStyle={styles.listContent}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           renderItem={({ item, index }) => {
             const next = messages[index + 1];
             const showTail = !next || next.sender_id !== item.sender_id;

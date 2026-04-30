@@ -160,6 +160,8 @@ export default function FriendsListView() {
           data={filtered}
           keyExtractor={(f) => f.friendship_id}
           contentContainerStyle={styles.list}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           renderItem={({ item }) => <FriendRow friend={item} onChange={load} />}
           refreshControl={
             <RefreshControl

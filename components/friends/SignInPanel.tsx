@@ -17,6 +17,7 @@ import { fonts } from '@/constants/typography';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
 import AnimatedPressable from '@/components/AnimatedPressable';
+import DismissKeyboardView from '@/components/DismissKeyboardView';
 import CheeseSlice from './CheeseSlice';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -147,7 +148,7 @@ export default function SignInPanel() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.container}>
+      <DismissKeyboardView style={styles.container}>
         <View style={styles.illustration}>
           <CheeseSlice size={170} />
         </View>
@@ -289,7 +290,7 @@ export default function SignInPanel() {
 
         {info && <Text style={styles.info}>{info}</Text>}
         {error && <Text style={styles.error}>{error}</Text>}
-      </View>
+      </DismissKeyboardView>
     </KeyboardAvoidingView>
   );
 }

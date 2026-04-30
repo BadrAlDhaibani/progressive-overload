@@ -15,6 +15,7 @@ import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
 import ScreenHeader from '@/components/friends/ScreenHeader';
 import AnimatedPressable from '@/components/AnimatedPressable';
+import DismissKeyboardView from '@/components/DismissKeyboardView';
 import { sendFriendRequest } from '@/lib/social/friends';
 import { normalizeUsername } from '@/lib/social/username';
 
@@ -98,7 +99,7 @@ export default function NewFriendRequestScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View style={styles.body}>
+        <DismissKeyboardView style={[styles.flex, styles.body]}>
           <Text style={styles.label}>Username</Text>
           <View style={styles.inputWrap}>
             <Text style={styles.prefix}>@</Text>
@@ -137,7 +138,7 @@ export default function NewFriendRequestScreen() {
               <Text style={styles.ctaText}>{busy ? 'Sending…' : 'Send request'}</Text>
             </View>
           </AnimatedPressable>
-        </View>
+        </DismissKeyboardView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
