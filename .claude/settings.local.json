@@ -46,7 +46,13 @@
       "Bash(echo \"exit=$?\")",
       "Bash(npm test *)",
       "Bash(npx jest *)",
-      "Bash(echo \"Exit: $?\")"
+      "Bash(echo \"Exit: $?\")",
+      "Bash(xargs wc *)",
+      "Bash(awk '{print $2}')",
+      "Read(//tmp/**)",
+      "Bash(cygpath -w /tmp/extract_tools.py)",
+      "Bash(cygpath -w /tmp/recent_transcripts.txt)",
+      "Bash(mount)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -34,6 +34,11 @@ export default function ChatScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [partner, setPartner] = useState<Profile | null>(null);
   const listRef = useRef<FlatList>(null);
+  const hasJumpedToBottomRef = useRef(false);
+
+  useEffect(() => {
+    hasJumpedToBottomRef.current = false;
+  }, [chatId]);
 
   useEffect(() => {
     if (!chatId || !myId) return;
@@ -77,11 +82,6 @@ export default function ChatScreen() {
     [chatId, myId]
   );
 
-  useEffect(() => {
-    if (messages.length === 0) return;
-    setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
-  }, [messages.length]);
-
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <ScreenHeader title={partner ? `@${partner.username}` : 'Chat'} />
@@ -98,6 +98,15 @@ export default function ChatScreen() {
           contentContainerStyle={styles.listContent}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          onContentSizeChange={() => {
+            if (messages.length === 0) return;
+            if (!hasJumpedToBottomRef.current) {
+              listRef.current?.scrollToEnd({ animated: false });
+              hasJumpedToBottomRef.current = true;
+            } else {
+              listRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
           renderItem={({ item, index }) => {
             const next = messages[index + 1];
             const showTail = !next || next.sender_id !== item.sender_id;
