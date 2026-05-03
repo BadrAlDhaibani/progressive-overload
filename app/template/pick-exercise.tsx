@@ -24,6 +24,7 @@ import {
 import { useTemplateFormStore } from '@/store/useTemplateFormStore';
 import { getLastPerformance } from '@/db/workouts';
 import ExerciseListItem from '@/components/ExerciseListItem';
+import AnimatedPressable from '@/components/AnimatedPressable';
 
 export default function PickExerciseScreen() {
   const colors = useColors();
@@ -108,13 +109,22 @@ export default function PickExerciseScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.header}>
         <Text style={styles.title}>Add Exercise</Text>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={8}
-          style={({ pressed }) => [styles.closeButton, pressed && styles.closeButtonPressed]}
-        >
-          <Ionicons name="close" size={24} color={colors.text} />
-        </Pressable>
+        <View style={styles.headerButtons}>
+          <AnimatedPressable
+            onPress={() => router.push('/exercise/new?from=template')}
+            hitSlop={8}
+            style={styles.createButton}
+          >
+            <Ionicons name="add" size={22} color={colors.primary} />
+          </AnimatedPressable>
+          <AnimatedPressable
+            onPress={() => router.back()}
+            hitSlop={8}
+            style={styles.closeButton}
+          >
+            <Ionicons name="close" size={24} color={colors.text} />
+          </AnimatedPressable>
+        </View>
       </View>
 
       <View style={styles.searchContainer}>
@@ -190,15 +200,25 @@ const createStyles = (colors: Colors) =>
       fontFamily: fonts.bold,
       color: colors.text,
     },
+    headerButtons: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    createButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primaryLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     closeButton: {
       width: 36,
       height: 36,
       borderRadius: 18,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    closeButtonPressed: {
-      backgroundColor: colors.bgMuted,
     },
     searchContainer: {
       flexDirection: 'row',

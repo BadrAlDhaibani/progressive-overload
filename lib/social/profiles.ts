@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import type { Profile } from './types';
 import { generateUsername, isValidUsername, normalizeUsername } from './username';
 
-export async function ensureProfile(userId: string, display: string | null): Promise<Profile> {
+export async function ensureProfile(userId: string): Promise<Profile> {
   const existing = await supabase
     .from('profiles')
     .select('*')
@@ -15,7 +15,7 @@ export async function ensureProfile(userId: string, display: string | null): Pro
     const username = generateUsername();
     const { data, error } = await supabase
       .from('profiles')
-      .insert({ id: userId, username, display_name: display })
+      .insert({ id: userId, username })
       .select('*')
       .single();
     if (!error && data) return data as Profile;

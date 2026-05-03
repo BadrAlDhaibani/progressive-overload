@@ -28,7 +28,7 @@ export default function LeaderboardRow({ row, rank, metric, isSelf }: Props) {
       <View style={styles.rankBadge}>
         <Text style={styles.rank}>{rank}</Text>
       </View>
-      <Avatar seed={row.user_id} label={row.display_name ?? row.username} size={40} color={row.profile_color} />
+      <Avatar seed={row.user_id} label={row.username} size={40} color={row.profile_color} />
       <View style={styles.middle}>
         <Text style={styles.username} numberOfLines={1}>
           @{row.username}

@@ -70,10 +70,7 @@ export default function SignInPanel() {
 
       const { data: userData } = await supabase.auth.getUser();
       if (userData.user) {
-        await useAuthStore.getState().setSession(
-          userData.user.id,
-          userData.user.user_metadata?.full_name ?? null
-        );
+        await useAuthStore.getState().setSession(userData.user.id);
       }
     } catch (e: any) {
       setError(e?.message ?? 'Sign in failed.');
@@ -111,10 +108,7 @@ export default function SignInPanel() {
         });
         if (signInError) throw signInError;
         if (data.user) {
-          await useAuthStore.getState().setSession(
-            data.user.id,
-            data.user.user_metadata?.full_name ?? null
-          );
+          await useAuthStore.getState().setSession(data.user.id);
         }
       } else {
         const { data, error: signUpError } = await supabase.auth.signUp({
@@ -123,10 +117,7 @@ export default function SignInPanel() {
         });
         if (signUpError) throw signUpError;
         if (data.session && data.user) {
-          await useAuthStore.getState().setSession(
-            data.user.id,
-            data.user.user_metadata?.full_name ?? null
-          );
+          await useAuthStore.getState().setSession(data.user.id);
         } else {
           setInfo('Check your inbox to confirm your email, then sign in.');
           setEmailMode('sign-in');

@@ -18,7 +18,7 @@ export default function PendingRequestRow({ request, onChange }: Props) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [busy, setBusy] = useState<'accept' | 'decline' | null>(null);
-  const label = request.other.display_name ?? request.other.username;
+  const label = request.other.username;
 
   const handleAccept = useCallback(async () => {
     if (busy) return;
@@ -56,13 +56,7 @@ export default function PendingRequestRow({ request, onChange }: Props) {
         color={request.other.profile_color}
       />
       <View style={styles.middle}>
-        {request.other.display_name ? (
-          <Text style={styles.name} numberOfLines={1}>{request.other.display_name}</Text>
-        ) : null}
-        <Text
-          style={request.other.display_name ? styles.handle : styles.name}
-          numberOfLines={1}
-        >
+        <Text style={styles.name} numberOfLines={1}>
           @{request.other.username}
         </Text>
       </View>
@@ -105,12 +99,6 @@ const createStyles = (colors: Colors) =>
       fontSize: 14,
       fontFamily: fonts.semiBold,
       color: colors.text,
-    },
-    handle: {
-      fontSize: 12,
-      fontFamily: fonts.regular,
-      color: colors.textMuted,
-      marginTop: 1,
     },
     actions: {
       flexDirection: 'row',

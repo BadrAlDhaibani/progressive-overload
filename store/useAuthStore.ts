@@ -37,7 +37,7 @@ interface AuthState {
   error: string | null;
 
   init: () => Promise<void>;
-  setSession: (userId: string | null, displayName: string | null) => Promise<void>;
+  setSession: (userId: string | null) => Promise<void>;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -60,24 +60,24 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       set({ status: 'signed-out', userId: null, profile: null });
       return;
     }
-    await get().setSession(session.user.id, session.user.user_metadata?.full_name ?? null);
+    await get().setSession(session.user.id);
 
     supabase.auth.onAuthStateChange((_event, next) => {
       if (next?.user) {
-        get().setSession(next.user.id, next.user.user_metadata?.full_name ?? null);
+        get().setSession(next.user.id);
       } else {
         set({ status: 'signed-out', userId: null, profile: null });
       }
     });
   },
 
-  setSession: async (userId, displayName) => {
+  setSession: async (userId) => {
     if (!userId) {
       set({ status: 'signed-out', userId: null, profile: null });
       return;
     }
     try {
-      const profile = await ensureProfile(userId, displayName);
+      const profile = await ensureProfile(userId);
       set({ status: 'signed-in', userId, profile, error: null });
       registerForPushNotifications(userId).catch(() => {
         /* push registration is best-effort; never block sign-in */

@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
@@ -23,11 +23,13 @@ import { insertCustomExercise } from '@/db/exercises';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import DismissKeyboardView from '@/components/DismissKeyboardView';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
+import { useTemplateFormStore } from '@/store/useTemplateFormStore';
 
 export default function NewExerciseScreen() {
   const colors = useColors();
   const mgColors = useMuscleGroupColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { from } = useLocalSearchParams<{ from?: string }>();
 
   const [name, setName] = useState('');
   const [muscleGroup, setMuscleGroup] = useState<string>(muscleGroups[0]);
@@ -42,6 +44,20 @@ export default function NewExerciseScreen() {
 
     const id = insertCustomExercise(trimmed, muscleGroup, equipment, isAssisted);
 
+    if (from === 'template') {
+      useTemplateFormStore.getState().addExercise({
+        exercise_id: id,
+        exercise_name: trimmed,
+        muscle_group: muscleGroup,
+        equipment,
+        is_assisted: isAssisted ? 1 : 0,
+        default_sets: 1,
+        default_reps: 0,
+      });
+      router.dismiss(2);
+      return;
+    }
+
     const { workoutId, addExercise, addSet } = useWorkoutStore.getState();
     if (workoutId !== null) {
       addExercise(id, trimmed, muscleGroup, isAssisted);
@@ -50,7 +66,7 @@ export default function NewExerciseScreen() {
     } else {
       router.back();
     }
-  }, [name, muscleGroup, equipment, isAssisted]);
+  }, [name, muscleGroup, equipment, isAssisted, from]);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>

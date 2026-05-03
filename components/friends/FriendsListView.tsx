@@ -94,11 +94,7 @@ export default function FriendsListView() {
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return friends;
-    return friends.filter((f) => {
-      const u = f.profile.username.toLowerCase();
-      const d = (f.profile.display_name ?? '').toLowerCase();
-      return u.includes(q) || d.includes(q);
-    });
+    return friends.filter((f) => f.profile.username.toLowerCase().includes(q));
   }, [friends, query]);
 
   const hasAnyFriends = friends.length > 0;

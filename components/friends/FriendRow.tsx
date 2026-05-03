@@ -23,7 +23,7 @@ export default function FriendRow({ friend, onChange, unreadCount = 0 }: Props) 
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const [busy, setBusy] = useState(false);
-  const label = friend.profile.display_name ?? friend.profile.username;
+  const label = friend.profile.username;
   const hasUnread = unreadCount > 0;
 
   const handlePress = useCallback(async () => {
@@ -96,19 +96,8 @@ export default function FriendRow({ friend, onChange, unreadCount = 0 }: Props) 
         color={friend.profile.profile_color}
       />
       <View style={styles.middle}>
-        {friend.profile.display_name ? (
-          <Text
-            style={[styles.name, hasUnread && styles.nameUnread]}
-            numberOfLines={1}
-          >
-            {friend.profile.display_name}
-          </Text>
-        ) : null}
         <Text
-          style={[
-            friend.profile.display_name ? styles.handle : styles.name,
-            hasUnread && (friend.profile.display_name ? styles.handleUnread : styles.nameUnread),
-          ]}
+          style={[styles.name, hasUnread && styles.nameUnread]}
           numberOfLines={1}
         >
           @{friend.profile.username}
@@ -150,16 +139,6 @@ const createStyles = (colors: Colors) =>
     },
     nameUnread: {
       fontFamily: fonts.bold,
-    },
-    handle: {
-      fontSize: 13,
-      fontFamily: fonts.regular,
-      color: colors.textMuted,
-      marginTop: 2,
-    },
-    handleUnread: {
-      fontFamily: fonts.semiBold,
-      color: colors.textSecondary,
     },
     unreadDot: {
       width: 8,
