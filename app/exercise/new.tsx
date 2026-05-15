@@ -60,7 +60,7 @@ export default function NewExerciseScreen() {
 
     const { workoutId, addExercise, addSet } = useWorkoutStore.getState();
     if (workoutId !== null) {
-      addExercise(id, trimmed, muscleGroup, isAssisted);
+      addExercise(id, trimmed, muscleGroup, isAssisted, equipment);
       addSet(id);
       router.dismiss(2);
     } else {

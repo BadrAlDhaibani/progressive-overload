@@ -11,9 +11,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { fonts } from '@/constants/typography';
+import AnimatedPressable from './AnimatedPressable';
 
 const DELETE_THRESHOLD = 96;
 const SWIPE_OUT_DURATION = 180;
@@ -25,6 +27,7 @@ interface SetRowProps {
   weight: number | null;
   reps: number | null;
   isComplete: boolean;
+  showPlateCalc?: boolean;
   onUpdateSet: (localId: string, weight: number | null, reps: number | null) => void;
   onCompleteSet: (localId: string) => void;
   onRemoveSet: (localId: string) => void;
@@ -36,6 +39,7 @@ function SetRow({
   weight,
   reps,
   isComplete,
+  showPlateCalc = false,
   onUpdateSet,
   onCompleteSet,
   onRemoveSet,
@@ -45,6 +49,11 @@ function SetRow({
 
   const [weightText, setWeightText] = useState(weight != null ? String(weight) : '');
   const [repsText, setRepsText] = useState(reps != null ? String(reps) : '');
+
+  // Sync local text when weight changes externally (e.g. plate calc); no-op during typing.
+  useEffect(() => {
+    setWeightText(weight != null ? String(weight) : '');
+  }, [weight]);
 
   const handleWeightEnd = useCallback(() => {
     const trimmed = weightText.trim();
@@ -174,50 +183,74 @@ function SetRow({
       </View>
       <GestureDetector gesture={panGesture}>
         <Animated.View style={rowStyle}>
-          <View style={[styles.row, isComplete ? styles.rowComplete : styles.rowDefault]}>
-            <Text style={[styles.setNumber, styles.setNumberCol]}>{setOrder}</Text>
+          <View style={[styles.rowWrapper, isComplete ? styles.rowComplete : styles.rowDefault]}>
+            <View style={styles.row}>
+              <Text style={[styles.setNumber, styles.setNumberCol]}>{setOrder}</Text>
 
-            <View style={styles.weightCol}>
-              <TextInput
-                style={[styles.input, isComplete && styles.inputComplete]}
-                value={weightText}
-                onChangeText={setWeightText}
-                onEndEditing={handleWeightEnd}
-                editable={!isComplete}
-                keyboardType="numeric"
-                selectTextOnFocus
-                placeholder="—"
-                placeholderTextColor={colors.textMuted}
-              />
-            </View>
-
-            <View style={styles.repsCol}>
-              <TextInput
-                style={[styles.input, isComplete && styles.inputComplete]}
-                value={repsText}
-                onChangeText={setRepsText}
-                onEndEditing={handleRepsEnd}
-                editable={!isComplete}
-                keyboardType="numeric"
-                selectTextOnFocus
-                placeholder="—"
-                placeholderTextColor={colors.textMuted}
-              />
-            </View>
-
-            <Pressable
-              onPress={handleComplete}
-              hitSlop={8}
-              style={styles.checkCol}
-            >
-              <Animated.View style={checkAnimStyle}>
-                <Ionicons
-                  name={isComplete ? 'checkmark-circle' : 'ellipse-outline'}
-                  size={28}
-                  color={isComplete ? colors.primary : colors.border}
+              <View style={styles.weightCol}>
+                <TextInput
+                  style={[styles.input, isComplete && styles.inputComplete]}
+                  value={weightText}
+                  onChangeText={setWeightText}
+                  onEndEditing={handleWeightEnd}
+                  editable={!isComplete}
+                  keyboardType="numeric"
+                  selectTextOnFocus
+                  placeholder="—"
+                  placeholderTextColor={colors.textMuted}
                 />
-              </Animated.View>
-            </Pressable>
+              </View>
+
+              <View style={styles.repsCol}>
+                <TextInput
+                  style={[styles.input, isComplete && styles.inputComplete]}
+                  value={repsText}
+                  onChangeText={setRepsText}
+                  onEndEditing={handleRepsEnd}
+                  editable={!isComplete}
+                  keyboardType="numeric"
+                  selectTextOnFocus
+                  placeholder="—"
+                  placeholderTextColor={colors.textMuted}
+                />
+              </View>
+
+              <Pressable
+                onPress={handleComplete}
+                hitSlop={8}
+                style={styles.checkCol}
+              >
+                <Animated.View style={checkAnimStyle}>
+                  <Ionicons
+                    name={isComplete ? 'checkmark-circle' : 'ellipse-outline'}
+                    size={28}
+                    color={isComplete ? colors.primary : colors.border}
+                  />
+                </Animated.View>
+              </Pressable>
+            </View>
+
+            {showPlateCalc && !isComplete && (
+              <View style={styles.calcRow}>
+                <View style={styles.setNumberCol} />
+                <View style={styles.weightCol}>
+                  <AnimatedPressable
+                    onPress={() => {
+                      Haptics.selectionAsync();
+                      router.push({ pathname: '/workout/plate-calc', params: { localId } });
+                    }}
+                    hitSlop={8}
+                  >
+                    <View style={styles.platePillInner}>
+                      <Ionicons name="barbell-outline" size={14} color={colors.primary} />
+                      <Text style={styles.platePillText}>Plates</Text>
+                    </View>
+                  </AnimatedPressable>
+                </View>
+                <View style={styles.repsCol} />
+                <View style={styles.checkCol} />
+              </View>
+            )}
           </View>
         </Animated.View>
       </GestureDetector>
@@ -229,6 +262,7 @@ export default memo(SetRow);
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
+    rowWrapper: {},
     row: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -240,6 +274,27 @@ const createStyles = (colors: Colors) =>
     },
     rowComplete: {
       backgroundColor: colors.primaryLight,
+    },
+    calcRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: 16,
+      paddingBottom: 8,
+      marginTop: -8,
+    },
+    platePillInner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 8,
+      backgroundColor: colors.primaryLight,
+    },
+    platePillText: {
+      fontSize: 12,
+      fontFamily: fonts.semiBold,
+      color: colors.primary,
     },
     setNumberCol: {
       width: 40,

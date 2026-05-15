@@ -26,6 +26,7 @@ export interface WorkoutExercise {
   exerciseId: number;
   exerciseName: string;
   muscleGroup: string;
+  equipment: string;
   isAssisted: boolean;
 }
 
@@ -50,7 +51,7 @@ interface WorkoutState {
   nextLocalId: number;
 
   startWorkout: (id: number) => void;
-  addExercise: (id: number, name: string, muscleGroup: string, isAssisted: boolean) => void;
+  addExercise: (id: number, name: string, muscleGroup: string, isAssisted: boolean, equipment: string) => void;
   addSet: (exerciseId: number) => void;
   addSetWithValues: (exerciseId: number, weight: number | null, reps: number | null) => void;
   updateSet: (localId: string, weight: number | null, reps: number | null) => void;
@@ -84,7 +85,7 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
     });
   },
 
-  addExercise: (id: number, name: string, muscleGroup: string, isAssisted: boolean) => {
+  addExercise: (id: number, name: string, muscleGroup: string, isAssisted: boolean, equipment: string) => {
     const state = get();
     if (state.exerciseIds.includes(id)) return;
 
@@ -92,7 +93,7 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
       exerciseIds: [...state.exerciseIds, id],
       exercises: {
         ...state.exercises,
-        [id]: { exerciseId: id, exerciseName: name, muscleGroup, isAssisted },
+        [id]: { exerciseId: id, exerciseName: name, muscleGroup, equipment, isAssisted },
       },
     });
   },

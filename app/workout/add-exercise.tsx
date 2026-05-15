@@ -61,7 +61,7 @@ export default function AddExerciseScreen() {
   const handleSelect = useCallback(
     (exercise: Exercise) => {
       if (exerciseIds.includes(exercise.id)) return;
-      addExercise(exercise.id, exercise.name, exercise.muscle_group, !!exercise.is_assisted);
+      addExercise(exercise.id, exercise.name, exercise.muscle_group, !!exercise.is_assisted, exercise.equipment);
 
       const lastSets = workoutId !== null
         ? getLastPerformance(exercise.id, workoutId)

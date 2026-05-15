@@ -53,7 +53,9 @@
       "Bash(cygpath -w /tmp/extract_tools.py)",
       "Bash(cygpath -w /tmp/recent_transcripts.txt)",
       "Bash(mount)",
-      "Skill(capture-pattern)"
+      "Skill(capture-pattern)",
+      "Bash(Get-ChildItem -Path \"D:\\\\Progressive Overload app\\\\progressive-overload\" -Recurse -Include \"*.tsx\" -Depth 2)",
+      "Bash(Select-Object -ExpandProperty FullName)"
     ]
   },
   "enableAllProjectMcpServers": true,

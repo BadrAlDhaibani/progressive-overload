@@ -90,6 +90,13 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="workout/plate-calc"
+            options={{
+              presentation: 'modal',
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen
             name="workout/summary"
             options={{
               gestureEnabled: false,

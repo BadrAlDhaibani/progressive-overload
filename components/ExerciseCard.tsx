@@ -102,6 +102,7 @@ function ExerciseCard({ exerciseId }: ExerciseCardProps) {
           weight={s.weight}
           reps={s.reps}
           isComplete={s.isComplete}
+          showPlateCalc={exercise.equipment === 'Barbell'}
           onUpdateSet={updateSet}
           onCompleteSet={completeSet}
           onRemoveSet={removeSet}
