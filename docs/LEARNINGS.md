@@ -34,6 +34,7 @@ Add new entries via `/capture-pattern` (the skill picks the right section, dedup
 - **Active workout is `presentation: 'fullScreenModal'`.** Prevents accidental swipe-away mid-workout. Don't downgrade to `'modal'`.
 - **Workout summary uses `gestureEnabled: false`.** Otherwise iOS swipe-back returns to the now-empty workout screen.
 - **Modal initial route needs `unstable_settings`** in the parent layout, or back gestures break in subtle ways.
+- **Minimize-resume relies on the workout store surviving modal unmount.** `handleMinimize` in `app/workout/[id].tsx` calls `router.back()` without touching `discardWorkout()` / `finishWorkout()`. The FAB's `isActive` branch in `app/(tabs)/_layout.tsx` re-pushes the modal and the in-progress data is still there because `useWorkoutStore` is memory-only and isn't cleared on unmount. Don't "clean up" the store on unmount — silently breaks resume.
 
 ## Fonts
 

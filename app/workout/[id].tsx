@@ -12,6 +12,8 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { cardShadow } from '@/constants/shadows';
@@ -71,6 +73,11 @@ export default function WorkoutScreen() {
       { text: 'Finish', onPress: doFinish },
     ]);
   }, [finish, workoutId]);
+
+  const handleMinimize = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
+  }, []);
 
   const handleDiscard = useCallback(() => {
     Alert.alert('Discard Workout?', 'All progress will be lost.', [
@@ -154,13 +161,22 @@ export default function WorkoutScreen() {
           </View>
         </KeyboardAvoidingView>
 
-        <View style={[styles.floatingTimer, { paddingTop: insets.top }]} pointerEvents="none">
+        <View style={[styles.floatingTimer, { paddingTop: insets.top }]} pointerEvents="box-none">
           <BlurView
             intensity={80}
             tint={colors.isDark ? 'dark' : 'light'}
             style={styles.blurContainer}
           >
             <Text style={styles.timerText}>{formatElapsed(elapsed)}</Text>
+            <AnimatedPressable
+              containerStyle={styles.minimizeButton}
+              style={styles.minimizeButtonInner}
+              onPress={handleMinimize}
+              accessibilityLabel="Minimize workout"
+              accessibilityRole="button"
+            >
+              <Ionicons name="chevron-down" size={24} color={colors.text} />
+            </AnimatedPressable>
           </BlurView>
         </View>
       </SafeAreaView>
@@ -193,6 +209,7 @@ const createStyles = (colors: Colors) =>
     blurContainer: {
       paddingVertical: 12,
       alignItems: 'center',
+      justifyContent: 'center',
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
@@ -201,6 +218,19 @@ const createStyles = (colors: Colors) =>
       fontFamily: fonts.bold,
       color: colors.text,
       textAlign: 'center',
+    },
+    minimizeButton: {
+      position: 'absolute',
+      left: 8,
+      top: 0,
+      bottom: 0,
+      justifyContent: 'center',
+    },
+    minimizeButtonInner: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     emptyContainer: {
       flex: 1,

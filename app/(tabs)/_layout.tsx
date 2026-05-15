@@ -176,23 +176,25 @@ export default function TabLayout() {
         <View style={styles.fabPositioner} pointerEvents="box-none">
           <AnimatedPressable
             onPress={onFabPress}
-            containerStyle={styles.fabShadow}
+            containerStyle={[styles.fabShadow, !isWorkoutActive && styles.fabShadowInactive]}
             style={styles.fabPressable}
             accessibilityLabel={isWorkoutActive ? 'Resume workout' : 'Start workout'}
             accessibilityRole="button"
           >
-            <LinearGradient
-              colors={[colors.primaryMedium, colors.primary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={styles.fabGradient}
-            >
-              <Ionicons
-                name={isWorkoutActive ? 'play' : 'add'}
-                size={30}
-                color={colors.textOnPrimary}
-              />
-            </LinearGradient>
+            {isWorkoutActive ? (
+              <LinearGradient
+                colors={[colors.primaryMedium, colors.primary]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.fabGradient}
+              >
+                <Ionicons name="play" size={30} color={colors.textOnPrimary} />
+              </LinearGradient>
+            ) : (
+              <View style={styles.fabInactive}>
+                <Ionicons name="add" size={30} color={colors.primary} />
+              </View>
+            )}
           </AnimatedPressable>
         </View>
       </View>
@@ -260,6 +262,9 @@ const createStyles = (colors: Colors) =>
       shadowOffset: { width: 0, height: 6 },
       elevation: 10,
     },
+    fabShadowInactive: {
+      shadowOpacity: colors.isDark ? 0.2 : 0.15,
+    },
     fabPressable: {
       width: '100%',
       height: '100%',
@@ -270,6 +275,15 @@ const createStyles = (colors: Colors) =>
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    fabInactive: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.bg,
+      borderWidth: 2,
+      borderColor: colors.primary,
+      borderRadius: FAB_SIZE / 2,
     },
     tabItem: {
       width: 56,
