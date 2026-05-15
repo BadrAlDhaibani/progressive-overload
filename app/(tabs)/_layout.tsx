@@ -1,9 +1,11 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { Fragment, useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { View, Pressable, StyleSheet } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import PagerView from 'react-native-pager-view';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
@@ -14,7 +16,9 @@ import FriendsContent from '@/components/screens/FriendsContent';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { useTabNavStore, tabNameToIndex } from '@/store/useTabNavStore';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useWorkoutStore } from '@/store/useWorkoutStore';
 import { getUnreadChatCounts, subscribeToAllMyMessages } from '@/lib/social/chats';
+import { createWorkout } from '@/db/workouts';
 
 type TabConfig = {
   title: string;
@@ -100,6 +104,23 @@ export default function TabLayout() {
     if (tabs[activeIndex]?.title === 'Friends') refreshUnread();
   }, [activeIndex, userId, refreshUnread]);
 
+  // Global "start workout" FAB — start fresh, or resume the active session.
+  const router = useRouter();
+  const isWorkoutActive = useWorkoutStore((s) => s.isActive);
+  const activeWorkoutId = useWorkoutStore((s) => s.workoutId);
+  const startWorkout = useWorkoutStore((s) => s.startWorkout);
+
+  const onFabPress = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    if (isWorkoutActive && activeWorkoutId !== null) {
+      router.push(`/workout/${activeWorkoutId}`);
+      return;
+    }
+    const id = createWorkout();
+    startWorkout(id);
+    router.push(`/workout/${id}`);
+  }, [isWorkoutActive, activeWorkoutId, startWorkout, router]);
+
   return (
     <View style={styles.container}>
       <PagerView
@@ -131,28 +152,57 @@ export default function TabLayout() {
               const tint = isActive ? colors.primary : colors.textMuted;
               const showUnreadDot = tab.title === 'Friends' && hasUnread && !isActive;
               return (
-                <AnimatedPressable
-                  key={index}
-                  containerStyle={styles.tabItem}
-                  style={styles.tabItemInner}
-                  onPress={() => onTabPress(index)}
-                  accessibilityLabel={tab.title}
-                  accessibilityRole="tab"
-                  accessibilityState={{ selected: isActive }}
-                >
-                  <View style={styles.iconWrap}>
-                    <Ionicons name={tab.icon} size={26} color={tint} />
-                    {showUnreadDot ? <View style={styles.tabUnreadDot} /> : null}
-                  </View>
-                </AnimatedPressable>
+                <Fragment key={index}>
+                  {index === 2 ? <View style={styles.fabSpacer} /> : null}
+                  <AnimatedPressable
+                    containerStyle={styles.tabItem}
+                    style={styles.tabItemInner}
+                    onPress={() => onTabPress(index)}
+                    accessibilityLabel={tab.title}
+                    accessibilityRole="tab"
+                    accessibilityState={{ selected: isActive }}
+                  >
+                    <View style={styles.iconWrap}>
+                      <Ionicons name={tab.icon} size={26} color={tint} />
+                      {showUnreadDot ? <View style={styles.tabUnreadDot} /> : null}
+                    </View>
+                  </AnimatedPressable>
+                </Fragment>
               );
             })}
           </BlurView>
+        </View>
+
+        <View style={styles.fabPositioner} pointerEvents="box-none">
+          <AnimatedPressable
+            onPress={onFabPress}
+            containerStyle={styles.fabShadow}
+            style={styles.fabPressable}
+            accessibilityLabel={isWorkoutActive ? 'Resume workout' : 'Start workout'}
+            accessibilityRole="button"
+          >
+            <LinearGradient
+              colors={[colors.primaryMedium, colors.primary]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.fabGradient}
+            >
+              <Ionicons
+                name={isWorkoutActive ? 'play' : 'add'}
+                size={30}
+                color={colors.textOnPrimary}
+              />
+            </LinearGradient>
+          </AnimatedPressable>
         </View>
       </View>
     </View>
   );
 }
+
+const PILL_HEIGHT = 56;
+const FAB_SIZE = 64;
+const FAB_SPACER_WIDTH = FAB_SIZE + 12;
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -182,12 +232,44 @@ const createStyles = (colors: Colors) =>
     },
     pill: {
       flexDirection: 'row',
-      height: 56,
+      height: PILL_HEIGHT,
       paddingHorizontal: 8,
       borderRadius: 28,
       overflow: 'hidden',
       borderWidth: StyleSheet.hairlineWidth,
       borderColor: colors.border,
+    },
+    fabSpacer: {
+      width: FAB_SPACER_WIDTH,
+      height: PILL_HEIGHT,
+    },
+    fabPositioner: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: (PILL_HEIGHT - FAB_SIZE) / 2,
+      alignItems: 'center',
+    },
+    fabShadow: {
+      width: FAB_SIZE,
+      height: FAB_SIZE,
+      borderRadius: FAB_SIZE / 2,
+      shadowColor: colors.primary,
+      shadowOpacity: colors.isDark ? 0.5 : 0.35,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 10,
+    },
+    fabPressable: {
+      width: '100%',
+      height: '100%',
+      borderRadius: FAB_SIZE / 2,
+      overflow: 'hidden',
+    },
+    fabGradient: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     tabItem: {
       width: 56,

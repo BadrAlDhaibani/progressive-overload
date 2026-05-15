@@ -9,12 +9,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useFocusEffect, useRouter } from 'expo-router';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { TAB_BAR_SCROLL_PADDING } from '@/constants/layout';
-import { cardShadow } from '@/constants/shadows';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { fonts } from '@/constants/typography';
@@ -94,12 +92,6 @@ export default function HomeContent() {
   }, [loadTemplates]);
 
   useFocusEffect(loadData);
-
-  const handleStartWorkout = useCallback(() => {
-    const id = createWorkout();
-    startWorkout(id);
-    router.push(`/workout/${id}`);
-  }, [startWorkout, router]);
 
   const handleStartFromTemplate = useCallback(
     (templateId: number, templateName: string) => {
@@ -192,23 +184,8 @@ export default function HomeContent() {
         </Text>
       </View>
 
-      <AnimatedPressable
-        onPress={handleStartWorkout}
-        containerStyle={styles.startButtonShadow}
-        style={styles.startButton}
-      >
-        <LinearGradient
-          colors={[colors.primaryMedium, colors.primary]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.startButtonGradient}
-        >
-          <Text style={styles.startButtonText}>Start Workout</Text>
-        </LinearGradient>
-      </AnimatedPressable>
-
       <View style={styles.templatesSection}>
-        <Text style={styles.sectionTitle}>Templates</Text>
+        <Text style={styles.sectionTitle}>Start from a Template</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -305,24 +282,6 @@ const createStyles = (colors: Colors) =>
       fontSize: 15,
       fontFamily: fonts.regular,
       color: colors.textSecondary,
-    },
-    startButtonShadow: {
-      borderRadius: 12,
-      marginBottom: 32,
-      ...cardShadow(colors),
-    },
-    startButton: {
-      borderRadius: 12,
-      overflow: 'hidden' as const,
-    },
-    startButtonGradient: {
-      paddingVertical: 16,
-      alignItems: 'center' as const,
-    },
-    startButtonText: {
-      color: colors.textOnPrimary,
-      fontSize: 17,
-      fontFamily: fonts.semiBold,
     },
     templatesSection: {
       marginBottom: 24,
