@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { BackHandler, StyleSheet, Text, View, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useColors, type Colors } from '@/constants/colors';
 import { useMuscleGroupColors } from '@/constants/muscleGroupColors';
@@ -10,8 +11,10 @@ import AnimatedPressable from '@/components/AnimatedPressable';
 import { cardShadow } from '@/constants/shadows';
 import type { MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
-import { getWorkoutById, getWorkoutSets } from '@/db/workouts';
+import { getWorkoutById, getWorkoutSets, getLastPerformance } from '@/db/workouts';
 import type { WorkoutSetWithExercise } from '@/db/workouts';
+
+type ProgressionDirection = 'up' | 'down' | 'flat' | null;
 
 function formatDuration(startedAt: string, finishedAt: string): string {
   const start = new Date(startedAt + 'Z').getTime();
@@ -27,9 +30,11 @@ function formatDuration(startedAt: string, finishedAt: string): string {
 }
 
 interface ExerciseGroup {
+  exerciseId: number;
   exerciseName: string;
   muscleGroup: string;
   isAssisted: boolean;
+  isBodyweight: boolean;
   sets: WorkoutSetWithExercise[];
 }
 
@@ -39,16 +44,48 @@ function groupByExercise(sets: WorkoutSetWithExercise[]): ExerciseGroup[] {
     let group = map.get(s.exercise_id);
     if (!group) {
       group = {
+        exerciseId: s.exercise_id,
         exerciseName: s.exercise_name,
         muscleGroup: s.muscle_group,
         isAssisted: !!s.is_assisted,
+        isBodyweight: true,
         sets: [],
       };
       map.set(s.exercise_id, group);
     }
     group.sets.push(s);
+    if (s.weight != null) group.isBodyweight = false;
   }
   return Array.from(map.values());
+}
+
+function computeExerciseProgression(
+  group: ExerciseGroup,
+  workoutId: number
+): ProgressionDirection {
+  const previous = getLastPerformance(group.exerciseId, workoutId);
+  if (previous.length === 0) return null;
+
+  const prevIsBodyweight = previous.every((s) => s.weight == null);
+  const bothBodyweight = group.isBodyweight && prevIsBodyweight;
+
+  const currTotalVolume = group.sets.reduce(
+    (sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0),
+    0
+  );
+  const currTotalReps = group.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
+  const prevTotalVolume = previous.reduce(
+    (sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0),
+    0
+  );
+  const prevTotalReps = previous.reduce((sum, s) => sum + (s.reps ?? 0), 0);
+
+  const curr = bothBodyweight ? currTotalReps : currTotalVolume;
+  const prev = bothBodyweight ? prevTotalReps : prevTotalVolume;
+
+  if (curr === prev) return 'flat';
+  if (group.isAssisted && !bothBodyweight) return curr < prev ? 'up' : 'down';
+  return curr > prev ? 'up' : 'down';
 }
 
 export default function SummaryScreen() {
@@ -90,6 +127,15 @@ export default function SummaryScreen() {
     () => groupByExercise(completedSets),
     [completedSets]
   );
+  const progressionByExercise = useMemo(() => {
+    if (!workoutId) return new Map<number, ProgressionDirection>();
+    const id = Number(workoutId);
+    const map = new Map<number, ProgressionDirection>();
+    for (const group of exerciseGroups) {
+      map.set(group.exerciseId, computeExerciseProgression(group, id));
+    }
+    return map;
+  }, [exerciseGroups, workoutId]);
   const totalVolume = useMemo(
     () =>
       completedSets.reduce(
@@ -132,10 +178,30 @@ export default function SummaryScreen() {
             </View>
           </View>
 
-          {exerciseGroups.map((group, i) => (
+          {exerciseGroups.map((group, i) => {
+            const progression = progressionByExercise.get(group.exerciseId) ?? null;
+            let arrowIcon: 'arrow-up' | 'arrow-down' | 'remove' | null = null;
+            let arrowColor: string = colors.textMuted;
+            if (progression === 'up') {
+              arrowIcon = 'arrow-up';
+              arrowColor = colors.success;
+            } else if (progression === 'down') {
+              arrowIcon = 'arrow-down';
+              arrowColor = colors.error;
+            } else if (progression === 'flat') {
+              arrowIcon = 'remove';
+              arrowColor = colors.textMuted;
+            }
+
+            return (
             <View key={i} style={styles.exerciseBlock}>
               <View style={styles.exerciseHeader}>
                 <Text style={styles.exerciseName}>{group.exerciseName}{group.isAssisted ? ' (assisted)' : ''}</Text>
+                {arrowIcon && (
+                  <View style={styles.arrowWrap}>
+                    <Ionicons name={arrowIcon} size={18} color={arrowColor} />
+                  </View>
+                )}
                 <View style={[styles.muscleGroupBadge, { backgroundColor: mgColors[group.muscleGroup as MuscleGroup]?.bg ?? colors.bgMuted }]}>
                   <Text style={[styles.muscleGroupText, { color: mgColors[group.muscleGroup as MuscleGroup]?.text ?? colors.textMuted }]}>
                     {group.muscleGroup}
@@ -152,7 +218,8 @@ export default function SummaryScreen() {
                 </View>
               ))}
             </View>
-          ))}
+            );
+          })}
 
           {exerciseGroups.length === 0 && (
             <Text style={styles.emptyText}>No completed sets.</Text>
@@ -228,12 +295,19 @@ const createStyles = (colors: Colors) =>
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: 12,
+      gap: 4,
     },
     exerciseName: {
       fontSize: 16,
       fontFamily: fonts.semiBold,
       color: colors.text,
       flex: 1,
+    },
+    arrowWrap: {
+      width: 28,
+      height: 28,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     muscleGroupBadge: {
       paddingHorizontal: 8,

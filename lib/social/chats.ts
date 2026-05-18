@@ -76,18 +76,32 @@ export async function getUnreadChatCounts(): Promise<Record<string, number>> {
 
 // RLS scopes the realtime stream to messages in chats the caller is a member
 // of, so a single unfiltered subscription on the messages table is sufficient.
-// Mirrors the subscribeToFriendships pattern in lib/social/friends.ts.
+// The hardcoded topic must be deduped at the data layer because more than one
+// component subscribes concurrently (tab layout + friends list).
+let sharedMessagesChannel: ReturnType<typeof supabase.channel> | null = null;
+const messagesListeners = new Set<(m: ChatMessage) => void>();
+
 export function subscribeToAllMyMessages(onInsert: (m: ChatMessage) => void) {
-  const channel = supabase
-    .channel('messages:all')
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages' },
-      (payload) => onInsert(payload.new as ChatMessage)
-    )
-    .subscribe();
+  messagesListeners.add(onInsert);
+  if (!sharedMessagesChannel) {
+    sharedMessagesChannel = supabase
+      .channel('messages:all')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload) => {
+          const msg = payload.new as ChatMessage;
+          for (const l of messagesListeners) l(msg);
+        }
+      )
+      .subscribe();
+  }
 
   return () => {
-    supabase.removeChannel(channel);
+    messagesListeners.delete(onInsert);
+    if (messagesListeners.size === 0 && sharedMessagesChannel) {
+      supabase.removeChannel(sharedMessagesChannel);
+      sharedMessagesChannel = null;
+    }
   };
 }

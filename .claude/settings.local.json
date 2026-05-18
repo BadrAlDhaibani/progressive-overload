@@ -55,7 +55,9 @@
       "Bash(mount)",
       "Skill(capture-pattern)",
       "Bash(Get-ChildItem -Path \"D:\\\\Progressive Overload app\\\\progressive-overload\" -Recurse -Include \"*.tsx\" -Depth 2)",
-      "Bash(Select-Object -ExpandProperty FullName)"
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(ls -la utils/)",
+      "Bash(ls -la lib/)"
     ]
   },
   "enableAllProjectMcpServers": true,
