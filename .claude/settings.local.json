@@ -57,7 +57,9 @@
       "Bash(Get-ChildItem -Path \"D:\\\\Progressive Overload app\\\\progressive-overload\" -Recurse -Include \"*.tsx\" -Depth 2)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(ls -la utils/)",
-      "Bash(ls -la lib/)"
+      "Bash(ls -la lib/)",
+      "Bash(findstr /i jest)",
+      "Bash(findstr *)"
     ]
   },
   "enableAllProjectMcpServers": true,

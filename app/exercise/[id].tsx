@@ -18,8 +18,7 @@ import { fonts } from '@/constants/typography';
 import AnimatedScreen from '@/components/AnimatedScreen';
 import { getExerciseById } from '@/db/exercises';
 import { getExerciseHistory, type ExerciseHistoryRow } from '@/db/workouts';
-
-type ProgressionDirection = 'up' | 'down' | 'flat' | null;
+import { computeSessionTrend, type ProgressionDirection } from '@/lib/progression';
 
 interface SessionSummary {
   workoutId: number;
@@ -79,12 +78,8 @@ function computeProgression(
     const curr = bothBodyweight ? s.totalReps : s.totalVolume;
     const prev = bothBodyweight ? older.totalReps : older.totalVolume;
 
-    let direction: ProgressionDirection;
-    if (curr === prev) direction = 'flat';
-    else if (isAssisted && !bothBodyweight) direction = curr < prev ? 'up' : 'down';
-    else direction = curr > prev ? 'up' : 'down';
-
-    return { ...s, progression: direction };
+    const progression = computeSessionTrend(curr, prev, isAssisted && !bothBodyweight);
+    return { ...s, progression };
   });
 }
 

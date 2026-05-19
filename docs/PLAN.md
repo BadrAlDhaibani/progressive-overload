@@ -12,7 +12,12 @@ App is feature-complete for the offline MVP and the optional social tier (Friend
 
 ## In progress
 
-- **N2: Push-notification opt-out UI.** Backend already in place (`notification_prefs`, `friendships.mute_by_*`). Two global switches (send, receive) in settings + per-friend mute via long-press menu on `FriendRow`. No native code; iterable in dev client. Small batch.
+- **Analytics tab (replaces History).** Visualize per-exercise progression over the last 30 days using best-of-last-2-weeks vs prior-2-weeks e1RM. Plan: `~/.claude/plans/could-we-implement-a-elegant-stream.md`. Three batches, each independently testable — pause for review after each commit:
+  - **B1:** Centralize progression logic into `lib/progression.ts` (refactors `summary.tsx` + `exercise/[id].tsx`; adds `setScore` / `sessionBestScore` / `computeWindowedTrend` for B3). Pure refactor + new helpers, no UI change.
+  - **B2:** Add `getRecentExerciseSets(days)` query in `db/workouts.ts` + tests in `db/__tests__/workouts.test.ts`. Additive, no UI change.
+  - **B3:** Build Analytics screen (`AnalyticsContent`, `Sparkline`, `ExerciseTrendRow`, `TrendFilterStrip`), swap History → Analytics in `app/(tabs)/_layout.tsx` and `store/useTabNavStore.ts`, delete `HistoryContent`. Depends on B1 + B2.
+  - Resume hint for new chats: check `git log --oneline -10` for `refactor(progression):` / `feat(db): add getRecentExerciseSets` / `feat(analytics):` to see which batches have shipped, then pick up the next one from the plan file.
+- **N2: Push-notification opt-out UI.** Backend already in place (`notification_prefs`, `friendships.mute_by_*`). Two global switches (send, receive) in settings + per-friend mute via long-press menu on `FriendRow`. No native code; iterable in dev client. Small batch. *(Bumped to second priority while Analytics tab is in flight.)*
 
 ## Next up
 

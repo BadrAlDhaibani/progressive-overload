@@ -13,8 +13,7 @@ import type { MuscleGroup } from '@/constants/muscleGroups';
 import { fonts } from '@/constants/typography';
 import { getWorkoutById, getWorkoutSets, getLastPerformance } from '@/db/workouts';
 import type { WorkoutSetWithExercise } from '@/db/workouts';
-
-type ProgressionDirection = 'up' | 'down' | 'flat' | null;
+import { computeSessionTrend, type ProgressionDirection } from '@/lib/progression';
 
 function formatDuration(startedAt: string, finishedAt: string): string {
   const start = new Date(startedAt + 'Z').getTime();
@@ -57,35 +56,6 @@ function groupByExercise(sets: WorkoutSetWithExercise[]): ExerciseGroup[] {
     if (s.weight != null) group.isBodyweight = false;
   }
   return Array.from(map.values());
-}
-
-function computeExerciseProgression(
-  group: ExerciseGroup,
-  workoutId: number
-): ProgressionDirection {
-  const previous = getLastPerformance(group.exerciseId, workoutId);
-  if (previous.length === 0) return null;
-
-  const prevIsBodyweight = previous.every((s) => s.weight == null);
-  const bothBodyweight = group.isBodyweight && prevIsBodyweight;
-
-  const currTotalVolume = group.sets.reduce(
-    (sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0),
-    0
-  );
-  const currTotalReps = group.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0);
-  const prevTotalVolume = previous.reduce(
-    (sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0),
-    0
-  );
-  const prevTotalReps = previous.reduce((sum, s) => sum + (s.reps ?? 0), 0);
-
-  const curr = bothBodyweight ? currTotalReps : currTotalVolume;
-  const prev = bothBodyweight ? prevTotalReps : prevTotalVolume;
-
-  if (curr === prev) return 'flat';
-  if (group.isAssisted && !bothBodyweight) return curr < prev ? 'up' : 'down';
-  return curr > prev ? 'up' : 'down';
 }
 
 export default function SummaryScreen() {
@@ -132,7 +102,26 @@ export default function SummaryScreen() {
     const id = Number(workoutId);
     const map = new Map<number, ProgressionDirection>();
     for (const group of exerciseGroups) {
-      map.set(group.exerciseId, computeExerciseProgression(group, id));
+      const previous = getLastPerformance(group.exerciseId, id);
+      if (previous.length === 0) {
+        map.set(group.exerciseId, null);
+        continue;
+      }
+
+      const prevIsBodyweight = previous.every((s) => s.weight == null);
+      const bothBodyweight = group.isBodyweight && prevIsBodyweight;
+
+      const currTotal = bothBodyweight
+        ? group.sets.reduce((sum, s) => sum + (s.reps ?? 0), 0)
+        : group.sets.reduce((sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0), 0);
+      const prevTotal = bothBodyweight
+        ? previous.reduce((sum, s) => sum + (s.reps ?? 0), 0)
+        : previous.reduce((sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0), 0);
+
+      map.set(
+        group.exerciseId,
+        computeSessionTrend(currTotal, prevTotal, group.isAssisted && !bothBodyweight)
+      );
     }
     return map;
   }, [exerciseGroups, workoutId]);
