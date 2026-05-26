@@ -10,7 +10,7 @@ import * as Haptics from 'expo-haptics';
 
 import { useColors, type Colors } from '@/constants/colors';
 import HomeContent from '@/components/screens/HomeContent';
-import HistoryContent from '@/components/screens/HistoryContent';
+import AnalyticsContent from '@/components/screens/AnalyticsContent';
 import ExercisesContent from '@/components/screens/ExercisesContent';
 import FriendsContent from '@/components/screens/FriendsContent';
 import AnimatedPressable from '@/components/AnimatedPressable';
@@ -28,7 +28,7 @@ type TabConfig = {
 
 const tabs: TabConfig[] = [
   { title: 'Home', icon: 'home-outline', Component: HomeContent },
-  { title: 'History', icon: 'time-outline', Component: HistoryContent },
+  { title: 'Analytics', icon: 'stats-chart-outline', Component: AnalyticsContent },
   { title: 'Exercises', icon: 'barbell-outline', Component: ExercisesContent },
   { title: 'Friends', icon: 'people-outline', Component: FriendsContent },
 ];

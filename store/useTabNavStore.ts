@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 
-export type TabName = 'home' | 'history' | 'exercises' | 'friends';
+export type TabName = 'home' | 'analytics' | 'exercises' | 'friends';
 export type FriendsSegment = 'leaderboard' | 'friends';
 
 const TAB_INDEX: Record<TabName, number> = {
   home: 0,
-  history: 1,
+  analytics: 1,
   exercises: 2,
   friends: 3,
 };
