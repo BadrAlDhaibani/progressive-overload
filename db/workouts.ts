@@ -39,6 +39,18 @@ export interface ExerciseHistoryRow {
   reps: number | null;
 }
 
+export interface ExerciseTrendRow {
+  exercise_id: number;
+  exercise_name: string;
+  muscle_group: string;
+  is_assisted: number;
+  workout_id: number;
+  started_at: string;
+  set_order: number;
+  weight: number | null;
+  reps: number | null;
+}
+
 export function createWorkout(name?: string): number {
   const result = db.runSync(
     'INSERT INTO workouts (name) VALUES (?)',
@@ -161,5 +173,33 @@ export function getExerciseHistory(exerciseId: number): ExerciseHistoryRow[] {
        AND s.is_complete = 1
      ORDER BY w.started_at DESC, s.set_order ASC`,
     exerciseId
+  );
+}
+
+export function getRecentExerciseSets(days: number): ExerciseTrendRow[] {
+  return db.getAllSync<ExerciseTrendRow>(
+    `WITH recent AS (
+       SELECT s.workout_id, s.exercise_id, s.set_order, s.weight, s.reps,
+              w.started_at, e.name AS exercise_name,
+              e.muscle_group, e.is_assisted
+       FROM sets s
+       JOIN workouts w ON s.workout_id = w.id
+       JOIN exercises e ON s.exercise_id = e.id
+       WHERE w.finished_at IS NOT NULL
+         AND s.is_complete = 1
+         AND w.started_at >= datetime('now', ?)
+     ),
+     eligible AS (
+       SELECT exercise_id
+       FROM recent
+       GROUP BY exercise_id
+       HAVING COUNT(DISTINCT workout_id) >= 2
+     )
+     SELECT r.exercise_id, r.exercise_name, r.muscle_group, r.is_assisted,
+            r.workout_id, r.started_at, r.set_order, r.weight, r.reps
+     FROM recent r
+     JOIN eligible el ON r.exercise_id = el.exercise_id
+     ORDER BY r.exercise_id, r.started_at DESC, r.set_order ASC`,
+    `-${days} days`
   );
 }

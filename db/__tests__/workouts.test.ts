@@ -4,7 +4,13 @@ jest.mock('expo-sqlite', () => {
 });
 
 import { db, SCHEMA_DDL } from '../database';
-import { createWorkout, getLastPerformance, insertSet } from '../workouts';
+import {
+  createWorkout,
+  getLastPerformance,
+  getRecentExerciseSets,
+  insertSet,
+  updateSet,
+} from '../workouts';
 import { resetMockDb } from '../../test-setup/db-mock';
 
 beforeEach(() => {
@@ -25,6 +31,31 @@ function insertFinishedWorkoutAt(startedAt: string, finishedAt: string): number 
     startedAt,
     finishedAt
   ).lastInsertRowId;
+}
+
+function insertUnfinishedWorkoutAt(startedAt: string): number {
+  return db.runSync(
+    'INSERT INTO workouts (name, started_at, finished_at) VALUES (?, ?, NULL)',
+    'w',
+    startedAt
+  ).lastInsertRowId;
+}
+
+function insertCompletedSet(
+  workoutId: number,
+  exerciseId: number,
+  setOrder: number,
+  weight: number,
+  reps: number
+): number {
+  const id = insertSet(workoutId, exerciseId, setOrder, weight, reps);
+  updateSet(id, weight, reps, 1);
+  return id;
+}
+
+function daysAgo(n: number): string {
+  const ms = Date.now() - n * 24 * 60 * 60 * 1000;
+  return new Date(ms).toISOString().slice(0, 19).replace('T', ' ');
 }
 
 describe('getLastPerformance', () => {
@@ -92,6 +123,90 @@ describe('getLastPerformance', () => {
     const currentId = createWorkout();
     expect(getLastPerformance(benchId, currentId)).toEqual([
       { set_order: 1, weight: 135, reps: 10 },
+    ]);
+  });
+});
+
+describe('getRecentExerciseSets', () => {
+  it('returns completed sets for eligible exercises, ordered exercise_id ASC, started_at DESC, set_order ASC', () => {
+    const exId = seedExercise('Bench');
+    const olderAt = daysAgo(10);
+    const newerAt = daysAgo(3);
+    const olderId = insertFinishedWorkoutAt(olderAt, olderAt);
+    const newerId = insertFinishedWorkoutAt(newerAt, newerAt);
+    insertCompletedSet(olderId, exId, 1, 135, 10);
+    insertCompletedSet(olderId, exId, 2, 145, 8);
+    insertCompletedSet(newerId, exId, 1, 145, 10);
+    insertCompletedSet(newerId, exId, 2, 155, 8);
+
+    expect(getRecentExerciseSets(30)).toEqual([
+      {
+        exercise_id: exId, exercise_name: 'Bench', muscle_group: 'Chest', is_assisted: 0,
+        workout_id: newerId, started_at: newerAt, set_order: 1, weight: 145, reps: 10,
+      },
+      {
+        exercise_id: exId, exercise_name: 'Bench', muscle_group: 'Chest', is_assisted: 0,
+        workout_id: newerId, started_at: newerAt, set_order: 2, weight: 155, reps: 8,
+      },
+      {
+        exercise_id: exId, exercise_name: 'Bench', muscle_group: 'Chest', is_assisted: 0,
+        workout_id: olderId, started_at: olderAt, set_order: 1, weight: 135, reps: 10,
+      },
+      {
+        exercise_id: exId, exercise_name: 'Bench', muscle_group: 'Chest', is_assisted: 0,
+        workout_id: olderId, started_at: olderAt, set_order: 2, weight: 145, reps: 8,
+      },
+    ]);
+  });
+
+  it('excludes exercises with only 1 session in the window', () => {
+    const benchId = seedExercise('Bench');
+    const squatId = seedExercise('Squat');
+    const w1At = daysAgo(5);
+    const w2At = daysAgo(2);
+    const w1 = insertFinishedWorkoutAt(w1At, w1At);
+    const w2 = insertFinishedWorkoutAt(w2At, w2At);
+    insertCompletedSet(w1, benchId, 1, 135, 10);
+    insertCompletedSet(w2, benchId, 1, 145, 10);
+    insertCompletedSet(w1, squatId, 1, 225, 5);
+
+    const rows = getRecentExerciseSets(30);
+    expect(rows.map((r) => r.exercise_id)).toEqual([benchId, benchId]);
+  });
+
+  it('excludes workouts older than `days` (and drops the exercise if it falls below 2 sessions)', () => {
+    const exId = seedExercise('Bench');
+    const recentAt = daysAgo(5);
+    const oldAt = daysAgo(60);
+    const recentId = insertFinishedWorkoutAt(recentAt, recentAt);
+    const oldId = insertFinishedWorkoutAt(oldAt, oldAt);
+    insertCompletedSet(recentId, exId, 1, 135, 10);
+    insertCompletedSet(oldId, exId, 1, 100, 10);
+
+    expect(getRecentExerciseSets(30)).toEqual([]);
+  });
+
+  it('excludes incomplete sets and unfinished workouts', () => {
+    const exId = seedExercise('Bench');
+    const w1At = daysAgo(5);
+    const w2At = daysAgo(2);
+    const w1 = insertFinishedWorkoutAt(w1At, w1At);
+    const w2 = insertFinishedWorkoutAt(w2At, w2At);
+    insertCompletedSet(w1, exId, 1, 135, 10);
+    insertSet(w1, exId, 2, 145, 8);
+    insertCompletedSet(w2, exId, 1, 145, 10);
+    const unfinished = insertUnfinishedWorkoutAt(daysAgo(1));
+    insertCompletedSet(unfinished, exId, 1, 200, 5);
+
+    expect(getRecentExerciseSets(30)).toEqual([
+      {
+        exercise_id: exId, exercise_name: 'Bench', muscle_group: 'Chest', is_assisted: 0,
+        workout_id: w2, started_at: w2At, set_order: 1, weight: 145, reps: 10,
+      },
+      {
+        exercise_id: exId, exercise_name: 'Bench', muscle_group: 'Chest', is_assisted: 0,
+        workout_id: w1, started_at: w1At, set_order: 1, weight: 135, reps: 10,
+      },
     ]);
   });
 });
