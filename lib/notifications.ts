@@ -4,18 +4,33 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { supabase, isSupabaseConfigured } from './supabase';
 
+// Set by the chat screen while a thread is open so chat_message pushes for
+// that thread are fully suppressed in the foreground (realtime already shows
+// the message in-place).
+let activeChatId: string | null = null;
+
+export function setActiveChatId(chatId: string | null): void {
+  activeChatId = chatId;
+}
+
 // Foreground behaviour: show banner + list entry. Sound only for the rest-timer
-// alert; social pushes (workout_start) stay silent in foreground per prior contract.
+// alert; social pushes (workout_start, chat_message) stay silent in foreground
+// per prior contract.
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
-    const isRest = notification.request.content.data?.kind === 'rest_complete';
+    const data = notification.request.content.data;
+    const isRest = data?.kind === 'rest_complete';
+    const inOpenThread =
+      data?.kind === 'chat_message' &&
+      typeof data?.chat_id === 'string' &&
+      data.chat_id === activeChatId;
     return {
-      shouldShowBanner: true,
-      shouldShowList: true,
+      shouldShowBanner: !inOpenThread,
+      shouldShowList: !inOpenThread,
       shouldPlaySound: isRest,
       shouldSetBadge: false,
       // Back-compat for older SDK type shapes that still expect `shouldShowAlert`.
-      shouldShowAlert: true,
+      shouldShowAlert: !inOpenThread,
     };
   },
 });
@@ -79,11 +94,19 @@ export async function unregisterPushToken(): Promise<void> {
   currentToken = null;
 }
 
-export type PushNotificationKind = 'workout_start';
+export type PushNotificationKind = 'workout_start' | 'chat_message';
 
 export function parseNotificationKind(
   response: Notifications.NotificationResponse,
 ): PushNotificationKind | null {
   const raw = response.notification.request.content.data?.kind;
-  return raw === 'workout_start' ? 'workout_start' : null;
+  if (raw === 'workout_start' || raw === 'chat_message') return raw;
+  return null;
+}
+
+export function parseNotificationChatId(
+  response: Notifications.NotificationResponse,
+): string | null {
+  const raw = response.notification.request.content.data?.chat_id;
+  return typeof raw === 'string' && raw.length > 0 ? raw : null;
 }

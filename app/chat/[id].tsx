@@ -23,6 +23,7 @@ import {
   subscribeToMessages,
 } from '@/lib/social/chats';
 import type { ChatMessage, Profile } from '@/lib/social/types';
+import { setActiveChatId } from '@/lib/notifications';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function ChatScreen() {
@@ -39,6 +40,13 @@ export default function ChatScreen() {
 
   useEffect(() => {
     hasJumpedToBottomRef.current = false;
+  }, [chatId]);
+
+  // Suppress foreground push banners for the thread that's on screen.
+  useEffect(() => {
+    if (!chatId) return;
+    setActiveChatId(chatId);
+    return () => setActiveChatId(null);
   }, [chatId]);
 
   useEffect(() => {

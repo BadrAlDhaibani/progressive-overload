@@ -7,13 +7,13 @@ import {
 } from '@expo-google-fonts/inter';
 import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
-import { Stack } from 'expo-router';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { initDatabase } from '@/db/database';
-import { parseNotificationKind } from '@/lib/notifications';
+import { parseNotificationChatId, parseNotificationKind } from '@/lib/notifications';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useTabNavStore } from '@/store/useTabNavStore';
 import { useTimerStore } from '@/store/useTimerStore';
@@ -51,20 +51,22 @@ export default function RootLayout() {
   }, [loaded]);
 
   useEffect(() => {
+    const handleTap = (response: Notifications.NotificationResponse) => {
+      const kind = parseNotificationKind(response);
+      if (kind === 'workout_start') {
+        useTabNavStore.getState().requestTab('friends', 'leaderboard');
+      } else if (kind === 'chat_message') {
+        const chatId = parseNotificationChatId(response);
+        if (chatId) router.push(`/chat/${chatId}`);
+      }
+    };
     // Handle cold-start notification taps.
     Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response && parseNotificationKind(response) === 'workout_start') {
-        useTabNavStore.getState().requestTab('friends', 'leaderboard');
-      }
+      if (response) handleTap(response);
     });
     // Warm taps.
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        if (parseNotificationKind(response) === 'workout_start') {
-          useTabNavStore.getState().requestTab('friends', 'leaderboard');
-        }
-      },
-    );
+    const subscription =
+      Notifications.addNotificationResponseReceivedListener(handleTap);
     return () => subscription.remove();
   }, []);
 
