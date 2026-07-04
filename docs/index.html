@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Provolone — Support</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1c1c1e;
+      --text-secondary: #6e6e73;
+      --accent: #f43f5e;
+      --border: #e5e5ea;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --text: #f2f2f7;
+        --text-secondary: #98989e;
+        --border: #2c2c2e;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 48px 20px 80px;
+      display: flex;
+      justify-content: center;
+    }
+    main { max-width: 680px; }
+    h1 { font-size: 32px; margin-bottom: 8px; }
+    .brand { color: var(--accent); }
+    p { font-size: 16px; margin-bottom: 16px; }
+    .muted { color: var(--text-secondary); }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    ul { padding-left: 22px; margin-bottom: 16px; }
+    li { margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1><span class="brand">Provolone</span> Support</h1>
+    <p class="muted">A gym workout tracker focused on progressive overload — log sets, reps, and weight so you always know what to beat next time.</p>
+    <p>Questions, bug reports, feature requests, or account/data deletion requests:</p>
+    <ul>
+      <li>Email: <a href="mailto:badrdeeb@gmail.com">badrdeeb@gmail.com</a></li>
+      <li><a href="./privacy.html">Privacy Policy</a></li>
+    </ul>
+    <p class="muted">The core workout logger works fully offline and requires no account. The optional Friends tier (leaderboard and chat) requires sign-in; you can delete your account and all associated data from inside the app at any time.</p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Privacy Policy — Provolone</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #1c1c1e;
+      --text-secondary: #6e6e73;
+      --accent: #f43f5e;
+      --border: #e5e5ea;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000;
+        --text: #f2f2f7;
+        --text-secondary: #98989e;
+        --border: #2c2c2e;
+      }
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      padding: 48px 20px 80px;
+    }
+    main { max-width: 680px; margin: 0 auto; }
+    h1 { font-size: 32px; margin-bottom: 4px; }
+    .updated { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+    h2 { font-size: 20px; margin: 32px 0 8px; }
+    p, li { font-size: 16px; margin-bottom: 12px; }
+    ul { padding-left: 22px; margin-bottom: 12px; }
+    li { margin-bottom: 6px; }
+    strong { font-weight: 600; }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .brand { color: var(--accent); }
+    footer { max-width: 680px; margin: 48px auto 0; padding-top: 24px; border-top: 1px solid var(--border); color: var(--text-secondary); font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Privacy Policy for <span class="brand">Provolone</span></h1>
+    <p class="updated">Last updated: July 4, 2026</p>
+
+    <h2>Overview</h2>
+    <p>Provolone has two sides. The core workout logger (sets, reps, weight, templates, history, analytics) works fully offline — that data lives in a local SQLite database on your device and is never sent anywhere. An optional Friends tier (weekly leaderboard, friend list, 1:1 chat) is only used if you sign in, and its data is stored on servers operated by Supabase, Inc.</p>
+
+    <h2>Data we collect (only if you sign in)</h2>
+    <ul>
+      <li><strong>Account info:</strong> your email address (for email sign-in) or your Apple-issued relay identifier (for Sign in with Apple).</li>
+      <li><strong>Profile:</strong> a username that you choose.</li>
+      <li><strong>Friends:</strong> your friend requests and friend list (which usernames you are connected to).</li>
+      <li><strong>Workout aggregates:</strong> your weekly total workout volume (lbs × reps summed), used to rank you on the weekly leaderboard. Individual sets, exercises, and templates are <strong>not</strong> uploaded — only the weekly sum.</li>
+      <li><strong>Chat data:</strong> the user IDs of the parties in each chat and the text of every message you send or receive.</li>
+      <li><strong>Push notification token:</strong> if you grant notification permission, a push token issued by Apple/Expo for your device, used solely to deliver friend-activity and chat notifications. You can turn these notifications off in Settings inside the app at any time.</li>
+    </ul>
+    <p>We do not collect: device identifiers, advertising IDs, location, contacts, photos, health data, analytics, or crash data.</p>
+
+    <h2>Where it's stored</h2>
+    <p>On Supabase (Postgres + Realtime), hosted in the United States (us-east-2). Row-Level Security is enabled on every table so only you and the parties you chat with can read your data.</p>
+
+    <h2>Third parties</h2>
+    <p>Supabase, Inc. (authentication, database, realtime). Apple, Inc. if you use Sign in with Apple, and Apple's push notification service for notifications (relayed via Expo's push service). No analytics, advertising, or tracking SDKs are included in the app.</p>
+
+    <h2>Retention &amp; deletion</h2>
+    <p>Local workout data is removed when you uninstall the app. For signed-in data, the app has a built-in <strong>Delete account</strong> option (Friends tab → settings) that permanently removes your profile, weekly stats, friendships, chats, messages, and push tokens. You can also request deletion by emailing us at the address below and we will complete it within 30 days.</p>
+
+    <h2>Children</h2>
+    <p>Provolone is not directed at children under 13 and we do not knowingly collect data from them.</p>
+
+    <h2>Changes</h2>
+    <p>If this policy changes we will update the "Last updated" date at the top of this page.</p>
+
+    <h2>Contact</h2>
+    <p><a href="mailto:badrdeeb@gmail.com">badrdeeb@gmail.com</a></p>
+  </main>
+  <footer>
+    <p>Provolone — a progressive overload workout tracker. <a href="./index.html">Support</a></p>
+  </footer>
+</body>
+</html>
