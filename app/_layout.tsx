@@ -16,6 +16,7 @@ import { initDatabase } from '@/db/database';
 import { parseNotificationKind } from '@/lib/notifications';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useTabNavStore } from '@/store/useTabNavStore';
+import { useTimerStore } from '@/store/useTimerStore';
 
 export {
   ErrorBoundary,
@@ -45,6 +46,7 @@ export default function RootLayout() {
     if (loaded) {
       SplashScreen.hideAsync();
       useAuthStore.getState().init();
+      void useTimerStore.getState().hydrateDefault();
     }
   }, [loaded]);
 

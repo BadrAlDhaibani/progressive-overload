@@ -99,7 +99,7 @@ Decline = hard delete (re-requestable). Forward-compat: friendships table can ab
 
 ---
 
-## Phase 1.11 — Friend push notifications (N2 pending — see PLAN.md)
+## Phase 1.11 — Friend push notifications
 
 - **N1** — End-to-end push plumbing (commit `15a27d2`, deployed via Supabase MCP 2026-04-24).
   - `0005_push_notifications.sql`: `push_tokens` (pk `expo_token`, RLS by `user_id`), `notification_prefs` (lazy-created), `notifications_sent` (service-role-only dedup table — its INFO advisor for "RLS enabled, no policies" is intentional), `friendships.mute_by_requester` + `mute_by_recipient` columns. Plus a `0005_fix_trigger_search_path` follow-up to pin `search_path = public` on the new trigger functions.
@@ -109,6 +109,7 @@ Decline = hard delete (re-requestable). Forward-compat: friendships table can ab
   - APNs: Auth Key uploaded to Expo, **Sandbox & Production**, Team Scoped. Separate from the Sign in with Apple key.
   - Mute semantics: one-way per side. Two boolean columns on `friendships`; A's pushes skip B iff B-side mute is true.
   - **Build flag**: `EXPO_NO_CAPABILITY_SYNC=1 eas build` — without it EAS tries to disable Sign in with Apple on the App ID, which Apple rejects once real users have signed in via SIWA.
+- **N2** — Push opt-out UI (commit `d828baf`, 2026-04-27). Global "Send to friends" / "Receive from friends" switches in `app/settings/username.tsx` backed by `lib/social/notifications.ts` (`notification_prefs` get/set); per-friend mute toggle on `components/friends/FriendRow.tsx` via `0006_friend_mute_rpc.sql` RPC. *(PLAN.md incorrectly kept listing N2 as queued for two months after this shipped — corrected 2026-07-04.)*
 
 ---
 
@@ -120,3 +121,21 @@ Internal tooling overhaul, no app behavior change.
 - **WI-B** — PLAN.md / PLAN.archive.md / LEARNINGS.md split (commit `1857246`). Slim living roadmap with In progress / Next up / Backlog / Deferred sections; archive holds the per-batch history; LEARNINGS.md holds tactical one-liners.
 - **WI-C** — Jest + ts-jest test infra and GitHub Actions CI. Tests cover pure helpers in `lib/social/{username,week}` and `utils/formatLastPerformance`. CI runs `npm test` + `npx tsc --noEmit` on push/PR to `main`. Component / SQLite / Supabase paths intentionally not yet covered — the `node` test environment + `ts-jest` preset would need upgrading to `jest-expo` first.
 - **WI-D** — `/capture-pattern` skill. Appends one-line learnings to `docs/LEARNINGS.md` under the right section, with dedupe + autonomous-mode confirmation guardrail. `disable-model-invocation` left unset so Claude can invoke it on its own when a genuinely non-obvious gotcha surfaces. Stop-hook auto-trigger deferred to backlog.
+
+---
+
+## Phase 1.12 — Analytics tab (replaces History)
+
+Visualize per-exercise progression over a 30-day window using best-of-last-2-weeks vs prior-2-weeks e1RM. Original plan: `~/.claude/plans/could-we-implement-a-elegant-stream.md`.
+
+- **B1** — Centralize progression logic into `lib/progression.ts` (refactors `summary.tsx` + `exercise/[id].tsx`; adds `setScore` / `sessionBestScore` / `computeWindowedTrend`). Pure refactor + new helpers, no UI change. Commit `3664ba0`.
+- **B2** — `getRecentExerciseSets(days)` query in `db/workouts.ts` + tests in `db/__tests__/workouts.test.ts`. Additive, no UI change. Commit `4fa9322`.
+- **B3** — Analytics screen (`AnalyticsContent`, `Sparkline`, `ExerciseTrendRow`, `TrendFilterStrip`); History → Analytics tab swap in `app/(tabs)/_layout.tsx` and `store/useTabNavStore.ts`; `HistoryContent` removed. Commit `7e9f280`.
+
+---
+
+## Phase 1.13 — Auto-starting rest timer (B2 Live Activity deferred to v1.1)
+
+Rest timer auto-starts on every set completion; tap pill to adjust ±30s (new value persists as default); local notification on expiry. Plan: `~/.claude/plans/check-the-plan-md-and-cheeky-charm.md`.
+
+- **B1** (shipped 2026-05-26) — In-app rest timer foundation. `store/useTimerStore.ts` (Zustand; persists `defaultSeconds` via AsyncStorage key `provolone.rest.defaultSeconds`; default 120, clamp ≥5s; never persists running state — relies on scheduled OS notification across cold restarts). `components/RestTimer.tsx` — compact pill + expanded `−30s · mm:ss · +30s · ×` row, Reanimated `SlideInDown`/`SlideOutDown`, 3s auto-collapse, expired-on-cold-resume skips redundant haptic since OS notification already alerted. `lib/restNotifications.ts` — `scheduleRestComplete` / `cancelRestComplete` / `ensureNotificationPermission` (lazy first-start permission prompt). `lib/notifications.ts` foreground handler now branches on `data.kind` so `rest_complete` plays sound while existing `workout_start` social pushes remain silent. Hooked in `useWorkoutStore.completeSet` (start on toggle-on with exercise name, cancel on toggle-off); `finishWorkout` + `discardWorkout` also cancel. `<RestTimer />` rendered inside the `KeyboardAvoidingView` above the bottom Discard/Finish bar (deviation from plan's "absolute positioned outside KAV" — inside the KAV keeps the pill visible above the keyboard while entering the next set's weight/reps).

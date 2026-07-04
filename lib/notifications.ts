@@ -4,16 +4,20 @@ import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { supabase, isSupabaseConfigured } from './supabase';
 
-// Foreground behaviour: show the banner + list entry, no sound or badge.
+// Foreground behaviour: show banner + list entry. Sound only for the rest-timer
+// alert; social pushes (workout_start) stay silent in foreground per prior contract.
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: false,
-    shouldSetBadge: false,
-    // Back-compat for older SDK type shapes that still expect `shouldShowAlert`.
-    shouldShowAlert: true,
-  }),
+  handleNotification: async (notification) => {
+    const isRest = notification.request.content.data?.kind === 'rest_complete';
+    return {
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: isRest,
+      shouldSetBadge: false,
+      // Back-compat for older SDK type shapes that still expect `shouldShowAlert`.
+      shouldShowAlert: true,
+    };
+  },
 });
 
 let currentToken: string | null = null;

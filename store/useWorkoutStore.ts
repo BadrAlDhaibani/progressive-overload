@@ -9,6 +9,7 @@ import {
 } from '@/db/workouts';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useTimerStore } from '@/store/useTimerStore';
 
 function notifyFriendsOfWorkoutStart(): void {
   if (!isSupabaseConfigured) return;
@@ -255,6 +256,8 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
         });
       }
       if (isFirstCompletion) notifyFriendsOfWorkoutStart();
+      const name = state.exercises[target.exerciseId]?.exerciseName ?? '';
+      void useTimerStore.getState().start(undefined, name);
     } else {
       // Un-completing — update DB
       if (target.dbId !== null) {
@@ -266,6 +269,7 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
           [localId]: { ...target, isComplete: false },
         },
       });
+      void useTimerStore.getState().cancel();
     }
   },
 
@@ -284,6 +288,7 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
     }
 
     dbFinishWorkout(state.workoutId);
+    void useTimerStore.getState().cancel();
     set({ ...initialState });
   },
 
@@ -292,6 +297,7 @@ export const useWorkoutStore = create<WorkoutState>()((set, get) => ({
     if (state.workoutId !== null) {
       deleteWorkout(state.workoutId);
     }
+    void useTimerStore.getState().cancel();
     set({ ...initialState });
   },
 }));

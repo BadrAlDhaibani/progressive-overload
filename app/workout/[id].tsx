@@ -22,6 +22,7 @@ import AnimatedScreen from '@/components/AnimatedScreen';
 import AnimatedPressable from '@/components/AnimatedPressable';
 import { useWorkoutStore } from '@/store/useWorkoutStore';
 import ExerciseCard from '@/components/ExerciseCard';
+import RestTimer from '@/components/RestTimer';
 import { syncWeeklyStats } from '@/lib/social/sync';
 
 function formatElapsed(seconds: number): string {
@@ -136,6 +137,8 @@ export default function WorkoutScreen() {
               <Text style={styles.addExerciseText}>+ Add Exercise</Text>
             </AnimatedPressable>
           </ScrollView>
+
+          <RestTimer />
 
           <View style={styles.bottomBar}>
             <AnimatedPressable
