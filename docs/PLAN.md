@@ -8,18 +8,18 @@ Workflow: one testable unit per batch, stop for the user to verify and commit. `
 
 ## Status
 
-App is feature-complete for the offline MVP and the optional social tier (Friends, leaderboard, 1:1 chat, push notifications with opt-out UI, account deletion). Currently on TestFlight (S5 done). Analytics tab shipped (Phase 1.12); Rest Timer B1 shipped (Phase 1.13 — B2 Live Activity deferred to v1.1); N2 shipped 2026-04-27 (`d828baf`). Launch queue, in order: **chat-message notifications** → **S6** (privacy policy + store metadata) → **S7** (production build + submission). Full launch gameplan: `~/.claude/plans/what-s-left-for-us-eventual-hellman.md`.
+App is feature-complete for the offline MVP and the optional social tier (Friends, leaderboard, 1:1 chat, push notifications with opt-out UI, account deletion). Currently on TestFlight (S5 done). Analytics tab (1.12), Rest Timer B1 (1.13), N2 (`d828baf`), and chat-message notifications (1.14, shipped 2026-07-04) are all live. S6 assets are done: privacy policy + support pages live on GitHub Pages, listing package in `docs/STORE.md`, demo account `applereview` seeded. Remaining: **user-side App Store Connect data entry** (work through `docs/STORE.md`) → **S7** (production build + submission). Full launch gameplan: `~/.claude/plans/what-s-left-for-us-eventual-hellman.md`.
 
 ## In progress
 
-- **Chat-message notifications** *(pulled up from Deferred into launch scope 2026-07-04).* Reuses N1 infra (`push_tokens`, `notification_prefs`, Expo push pattern from `notify-workout-start`). Two batches:
-  - **2a Backend:** `0009_chat_message_notifications.sql` — enable `pg_net`, `AFTER INSERT` trigger on `messages` POSTing to new `notify-chat-message` edge function (server-side, shared-secret header validated in-function; unlike `notify-workout-start`'s client invoke). Function resolves the other `chat_members` row, filters by recipient `receive_enabled` + per-friend mute, batch-POSTs to Expo with `data: { kind: 'chat_message', chatId }`. No 2h dedup. Scope cut: reuse friend mute, no chat-level mute in v1.
-  - **2b Client:** extend `parseNotificationKind` for `chat_message`; foreground handler suppresses alert when the user is already inside that thread; notification tap deep-links to `/chat/[id]` (extend N1 tap-routing in `store/useTabNavStore.ts` / `app/_layout.tsx`).
+- **S6 App Store Connect data entry (user-side).** Work through `docs/STORE.md` top to bottom: metadata fields, description/keywords, screenshots, App Privacy questionnaire, demo credentials (badrdeeb@gmail.com — password NOT in the repo, ASC review-notes field only) + review notes.
 
 ## Next up
 
-- **S6: App Store preparation.** Host privacy policy via **GitHub Pages** (draft + store-listing copy + review-notes template recoverable via `git show ec1fece:docs/PLAN.md` — update for Analytics/rest timer/chat), App Store Connect metadata, screenshots ×5 (6.7" + 6.1"), App Privacy declaration, demo account for review notes. ~~Fill `eas.json` submit creds~~ — already done (`appleId` / `ascAppId` / `appleTeamId` present).
-- **Pre-flight checks (before S7):** confirm Supabase project isn't paused / decide on plan tier (MCP timed out 2026-07-04); verify Apple OAuth ES256 client secret is configured in Supabase Auth and record its rotation date (expires every 6 months; `scripts/apple-client-secret.mjs`); run `mcp__supabase__get_advisors` (security + performance); confirm migrations 0001–0009 applied.
+- **Remaining pre-flight (user dashboard actions):**
+  - Enable leaked-password protection: Dashboard → Authentication → Passwords (advisor WARN, 2026-07-04).
+  - **Decide Supabase tier before launch.** Free tier pauses after ~1 week of inactivity (it was INACTIVE on 2026-07-04 and had to be manually restored — that's a production outage for the social layer). Pro ($25/mo) removes pausing.
+  - Test Sign in with Apple on the TestFlight build — provider is enabled (authorize endpoint verified 2026-07-04) but the client secret is only exercised at token exchange. **Secret expires ~2026-10-21** (6 months from 2026-04-21 setup); regenerate via `scripts/apple-client-secret.mjs` + paste into Dashboard → Auth → Providers → Apple, and set a reminder to rotate before expiry.
 - **S7: Production build & submission.** `EXPO_NO_CAPABILITY_SYNC=1 eas build --profile production --platform ios`, TestFlight smoke test (rest timer, chat push, Apple sign-in, airplane-mode logging), then `eas submit --platform ios --latest`. `app.json` name/version/bundle id already correct; `autoIncrement: true` handles buildNumber.
 
 ## Backlog
