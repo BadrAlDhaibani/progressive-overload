@@ -49,6 +49,8 @@ Add new entries via `/capture-pattern` (the skill picks the right section, dedup
 - **Trigger functions need `set search_path = public`.** Migration `0005_fix_trigger_search_path` exists because the original trigger functions didn't pin it; advisor flagged the warning.
 - **`notifications_sent` only marks dedup on successful Expo tickets.** Failed sends remain eligible for retry on the next workout.
 - **Realtime `postgres_changes` honors RLS — no client-side filter needed for per-user fan-out.** A single unfiltered subscription on a table with RLS only delivers rows the auth user is allowed to read. See `subscribeToAllMyMessages` in `lib/social/chats.ts` (one channel for every chat the user is in) and `subscribeToFriendships` in `lib/social/friends.ts`. Don't reach for `filter: chat_id=eq.<id>` per-channel just to scope to a user.
+- **`create extension pg_net` defaults to the `public` schema** and trips the security advisor — create it `with schema extensions`. Recreating is safe: plpgsql trigger functions resolve `net.http_post` at runtime, not via a DDL dependency. See `0009_fix_pg_net_schema_grants.sql`.
+- **A paused (INACTIVE) free-tier project fails all MCP database tools with a generic connection timeout** while management-API tools (`get_project_url`, deploy) still respond — check `npx supabase projects list` for project status before debugging connectivity.
 
 ## EAS / TestFlight / build
 
